@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stef_life Agency Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080810;
+    color: #fff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(to bottom, rgba(8,8,16,0.95) 60%, transparent);
+  }
+
+  #header h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #D4AF37;
+    text-shadow: 0 0 18px rgba(212,175,55,0.6);
+  }
+
+  #header .subtitle {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  #header .dot-live {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  #canvas-wrap {
+    width: 100vw;
+    height: 100vh;
+    cursor: grab;
+  }
+  #canvas-wrap:active { cursor: grabbing; }
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    z-index: 200;
+    display: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: rgba(12, 12, 28, 0.88);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212,175,55,0.25);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+    font-size: 0.82rem;
+    min-width: 140px;
+  }
+  #tooltip .tt-name {
+    font-weight: 700;
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+  }
+  #tooltip .tt-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+  }
+  #tooltip .tt-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+
+  /* Info Panel */
+  #info-panel {
+    position: fixed;
+    top: 70px;
+    right: -360px;
+    width: 320px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    z-index: 150;
+    transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 16px 0 0 16px;
+    background: rgba(12, 12, 28, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-right: none;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.5);
+    padding: 24px 20px;
+  }
+  #info-panel.open { right: 0; }
+
+  #info-panel .ip-close {
+    position: absolute;
+    top: 14px; right: 16px;
+    background: none; border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  #info-panel .ip-close:hover { color: #fff; }
+
+  #info-panel .ip-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 6px;
+  }
+  #info-panel .ip-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  #info-panel .ip-cluster {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 18px;
+  }
+  #info-panel .ip-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  #info-panel .ip-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  #info-panel .ip-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    margin: 16px 0;
+  }
+  #info-panel .ip-metric {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+    color: rgba(255,255,255,0.65);
+  }
+  #info-panel .ip-metric span:last-child {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Node styles via SVG */
+  .node-group { cursor: pointer; }
+
+  .node-ring {
+    fill: none;
+    stroke-width: 1;
+    opacity: 0.15;
+    stroke-dasharray: 4 4;
+    animation: spin-ring 60s linear infinite;
+  }
+
+  @keyframes spin-ring {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .particle {
+    pointer-events: none;
+  }
+
+  /* Scrollbar */
+  #info-panel::-webkit-scrollbar { width: 4px; }
+  #info-panel::-webkit-scrollbar-track { background: transparent; }
+  #info-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="dot-live"></div>
+  <div>
+    <h1>Stef_life Agency</h1>
+    <div class="subtitle">Live Operations Dashboard — 30 Teams</div>
+  </div>
+</div>
+
+<div id="canvas-wrap">
+  <svg id="viz"></svg>
+</div>
+
+<div id="tooltip">
+  <div class="tt-name" id="tt-name"></div>
+  <div class="tt-status">
+    <div class="tt-dot" id="tt-dot"></div>
+    <span id="tt-status-text"></span>
+  </div>
+</div>
+
+<div id="info-panel">
+  <button class="ip-close" onclick="closePanel()">✕</button>
+  <div class="ip-label">Abteilung</div>
+  <div class="ip-name" id="ip-name">—</div>
+  <div class="ip-cluster" id="ip-cluster">—</div>
+  <div class="ip-status-row">
+    <div class="ip-dot" id="ip-dot"></div>
+    <span id="ip-status-text">—</span>
+  </div>
+  <div class="ip-divider"></div>
+  <div class="ip-metric"><span>Cluster</span><span id="ip-cluster2">—</span></div>
+  <div class="ip-metric"><span>Auslastung</span><span id="ip-load">—</span></div>
+  <div class="ip-metric"><span>Priorität</span><span id="ip-prio">—</span></div>
+  <div class="ip-metric"><span>Tasks aktiv</span><span id="ip-tasks">—</span></div>
+  <div class="ip-divider"></div>
+  <div class="ip-metric"><span>Letzter Update</span><span id="ip-update">Gerade eben</span></div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const STATUS_OPTIONS = ['active', 'active', 'active', 'idle', 'offline'];
+const STATUS_COLORS  = { active: '#00ff88', idle: '#f5a623', offline: '#555577' };
+const STATUS_LABELS  = { active: 'Aktiv', idle: 'Standby', offline: 'Offline' };
+
+function randStatus() {
+  return STATUS_OPTIONS[Math.floor(Math.random() * STATUS_OPTIONS.length)];
+}
+function randLoad() {
+  return Math.floor(Math.random() * 60 + 30) + '%';
+}
+function randPrio() {
+  const p = ['Hoch','Mittel','Normal'];
+  return p[Math.floor(Math.random()*p.length)];
+}
+function randTasks() {
+  return Math.floor(Math.random() * 12 + 1);
+}
+
+// Hub center
+const HUB = {
+  id: 'hub', label: 'Stef_life\nHub', type: 'hub',
+  status: 'active', color: '#D4AF37', ring: 0
+};
+
+// Ring 1 — Content & Media
+const RING1 = ['Content','Copywriting','Thumbnail','Shorts','SEO','YouTube'].map((name, i) => ({
+  id: 'r1_'+i, label: name, type: 'stef', color: '#D4AF37',
+  ring: 1, angle: (i / 6) * Math.PI * 2,
+  status: randStatus(), load: randLoad(), prio: randPrio(), tasks: randTasks(),
+  cluster: 'Content & Media'
+}));
+
+// Ring 2 — Marketing & Tech
+const RING2_NAMES = ['Marketing','Ads','PR','Email','Community','Discord','Produkt','Webdesign','Branding','Automation','IT','Library','Planning','Data','Analysten'];
+const RING2 = RING2_NAMES.map((name, i) => ({
+  id: 'r2_'+i, label: name, type: 'stef', color: '#D4AF37',
+  ring: 2, angle: (i / RING2_NAMES.length) * Math.PI * 2,
+  status: randStatus(), load: randLoad(), prio: randPrio(), tasks: randTasks(),
+  cluster: 'Marketing & Tech'
+}));
+
+// Trading cluster
+const TRADING_HUB = {
+  id: 'trading_hub', label: 'Trading\nZentrale', type: 'trading-hub',
+  status: 'active', color: '#00d4ff', ring: 0, cluster: 'Trading'
+};
+const TRADING_NAMES = ['Makro','On-Chain','Liquidations','COT','News','Technical','Bias Report'];
+const TRADING = TRADING_NAMES.map((name, i) => ({
+  id: 'tr_'+i, label: name, type: 'trading', color: '#00d4ff',
+  ring: 'tr', angle: (i / TRADING_NAMES.length) * Math.PI * 2,
+  status: randStatus(), load: randLoad(), prio: randPrio(), tasks: randTasks(),
+  cluster: 'Trading Zentrale'
+}));
+
+// QA
+const QA = {
+  id: 'qa', label: 'QA', type: 'qa',
+  status: 'active', color: '#9b59b6', ring: 'qa',
+  load: randLoad(), prio: 'Hoch', tasks: randTasks(),
+  cluster: 'Quality Assurance'
+};
+
+// ─── LAYOUT ─────────────────────────────────────────────────────────────────
+
+const W = window.innerWidth;
+const H = window.innerHeight;
+const CX = W * 0.38;  // Stef_life hub center
+const CY = H * 0.5;
+const R1 = 155;       // Ring 1 radius
+const R2 = 290;       // Ring 2 radius
+const TR_X = CX + 520; // Trading cluster X
+const TR_Y = H * 0.42;
+const TR_R = 165;
+const QA_X = CX + 60;
+const QA_Y = CY + 390;
+
+// Assign positions
+HUB.x = CX; HUB.y = CY;
+
+RING1.forEach(n => {
+  n.x = CX + R1 * Math.cos(n.angle - Math.PI/2);
+  n.y = CY + R1 * Math.sin(n.angle - Math.PI/2);
+});
+RING2.forEach(n => {
+  n.x = CX + R2 * Math.cos(n.angle - Math.PI/2);
+  n.y = CY + R2 * Math.sin(n.angle - Math.PI/2);
+});
+
+TRADING_HUB.x = TR_X; TRADING_HUB.y = TR_Y;
+TRADING.forEach(n => {
+  n.x = TR_X + TR_R * Math.cos(n.angle - Math.PI/2);
+  n.y = TR_Y + TR_R * Math.sin(n.angle - Math.PI/2);
+});
+
+QA.x = QA_X; QA.y = QA_Y;
+
+const ALL_NODES = [HUB, ...RING1, ...RING2, TRADING_HUB, ...TRADING, QA];
+
+// ─── SVG SETUP ──────────────────────────────────────────────────────────────
+
+const svg = d3.select('#viz');
+
+// Defs
+const defs = svg.append('defs');
+
+// Glow filters
+function addGlow(id, color, blur=8, strength=2) {
+  const f = defs.append('filter').attr('id', id).attr('x','-50%').attr('y','-50%').attr('width','200%').attr('height','200%');
+  f.append('feGaussianBlur').attr('stdDeviation', blur).attr('result','blur');
+  const merge = f.append('feMerge');
+  for(let i=0;i<strength;i++) merge.append('feMergeNode').attr('in','blur');
+  merge.append('feMergeNode').attr('in','SourceGraphic');
+}
+addGlow('glow-gold', '#D4AF37', 6, 2);
+addGlow('glow-cyan', '#00d4ff', 6, 2);
+addGlow('glow-green', '#00ff88', 10, 3);
+addGlow('glow-hub', '#D4AF37', 14, 3);
+addGlow('glow-trading-hub', '#00d4ff', 14, 3);
+addGlow('glow-purple', '#9b59b6', 6, 2);
+
+// Radial gradient background
+const bgGrad = defs.append('radialGradient').attr('id','bg-grad').attr('cx','40%').attr('cy','50%').attr('r','60%');
+bgGrad.append('stop').attr('offset','0%').attr('stop-color','#0d0d20').attr('stop-opacity',1);
+bgGrad.append('stop').attr('offset','100%').attr('stop-color','#080810').attr('stop-opacity',1);
+
+// Particle marker
+const marker = defs.append('circle').attr('id','particle').attr('r',2.5);
+
+const g = svg.append('g').attr('id','scene');
+
+// Background rect
+svg.insert('rect','g').attr('width','100%').attr('height','100%').attr('fill','url(#bg-grad)');
+
+// ─── ZOOM / PAN ──────────────────────────────────────────────────────────────
+
+const zoom = d3.zoom()
+  .scaleExtent([0.3, 3])
+  .on('zoom', (event) => {
+    g.attr('transform', event.transform);
+  });
+
+svg.call(zoom);
+
+// Initial transform: center-ish
+svg.call(zoom.transform, d3.zoomIdentity.translate(W*0.04, H*0.02).scale(0.9));
+
+// ─── DECORATIVE RINGS ────────────────────────────────────────────────────────
+
+// Stef_life orbit rings
+[R1, R2].forEach((r, i) => {
+  g.append('circle')
+    .attr('cx', CX).attr('cy', CY).attr('r', r)
+    .attr('fill','none')
+    .attr('stroke', '#D4AF37')
+    .attr('stroke-width', 0.5)
+    .attr('stroke-dasharray', '6 10')
+    .attr('opacity', 0.12);
+});
+
+// Trading orbit ring
+g.append('circle')
+  .attr('cx', TR_X).attr('cy', TR_Y).attr('r', TR_R)
+  .attr('fill','none')
+  .attr('stroke','#00d4ff')
+  .attr('stroke-width', 0.5)
+  .attr('stroke-dasharray','6 10')
+  .attr('opacity', 0.12);
+
+// Cross-cluster connector line (hub → trading hub)
+g.append('line')
+  .attr('x1', CX).attr('y1', CY)
+  .attr('x2', TR_X).attr('y2', TR_Y)
+  .attr('stroke','url(#cross-grad)')
+  .attr('stroke-width', 1.2)
+  .attr('stroke-dasharray','8 6')
+  .attr('opacity', 0.25);
+
+// QA connector
+g.append('line')
+  .attr('x1', CX).attr('y1', CY)
+  .attr('x2', QA_X).attr('y2', QA_Y)
+  .attr('stroke','#9b59b6')
+  .attr('stroke-width', 1)
+  .attr('stroke-dasharray','4 6')
+  .attr('opacity', 0.2);
+
+// Cross-cluster gradient
+const cgGrad = defs.append('linearGradient').attr('id','cross-grad')
+  .attr('x1','0%').attr('y1','0%').attr('x2','100%').attr('y2','0%');
+cgGrad.append('stop').attr('offset','0%').attr('stop-color','#D4AF37');
+cgGrad.append('stop').attr('offset','100%').attr('stop-color','#00d4ff');
+
+// ─── LINKS (HUB → NODES) ─────────────────────────────────────────────────────
+
+const linksLayer = g.append('g').attr('id','links');
+const particlesLayer = g.append('g').attr('id','particles');
+
+// Stef_life links (ring1 + ring2 → hub)
+[...RING1, ...RING2].forEach(n => {
+  linksLayer.append('line')
+    .attr('class','link-stef')
+    .attr('data-id', n.id)
+    .attr('x1', CX).attr('y1', CY)
+    .attr('x2', n.x).attr('y2', n.y)
+    .attr('stroke','#D4AF37').attr('stroke-width', 0.7)
+    .attr('opacity', 0.18);
+});
+
+// Trading links
+TRADING.forEach(n => {
+  linksLayer.append('line')
+    .attr('class','link-trading')
+    .attr('data-id', n.id)
+    .attr('x1', TR_X).attr('y1', TR_Y)
+    .attr('x2', n.x).attr('y2', n.y)
+    .attr('stroke','#00d4ff').attr('stroke-width', 0.7)
+    .attr('opacity', 0.18);
+});
+
+// ─── PARTICLE SYSTEM ─────────────────────────────────────────────────────────
+
+const PARTICLE_POOL = [];
+const NUM_PARTICLES_STEF = 18;
+const NUM_PARTICLES_TRADING = 8;
+
+function createParticles(count, nodes, srcX, srcY, color) {
+  for(let i = 0; i < count; i++) {
+    const target = nodes[Math.floor(Math.random() * nodes.length)];
+    const progress = Math.random();
+    const p = {
+      target,
+      srcX, srcY,
+      color,
+      progress,
+      speed: 0.0008 + Math.random() * 0.0012,
+      size: 1.5 + Math.random() * 2
+    };
+    const el = particlesLayer.append('circle')
+      .attr('r', p.size)
+      .attr('fill', color)
+      .attr('opacity', 0.7)
+      .style('filter', `drop-shadow(0 0 3px ${color})`);
+    p.el = el;
+    PARTICLE_POOL.push(p);
+  }
+}
+
+createParticles(NUM_PARTICLES_STEF, [...RING1, ...RING2], CX, CY, '#D4AF37');
+createParticles(NUM_PARTICLES_TRADING, TRADING, TR_X, TR_Y, '#00d4ff');
+// QA particle
+createParticles(2, [QA], CX, CY, '#9b59b6');
+
+function animateParticles() {
+  PARTICLE_POOL.forEach(p => {
+    p.progress += p.speed;
+    if(p.progress > 1) {
+      p.progress = 0;
+      // Randomly pick new target
+      if(p.color === '#D4AF37') {
+        const nodes = [...RING1, ...RING2];
+        p.target = nodes[Math.floor(Math.random() * nodes.length)];
+      } else if(p.color === '#00d4ff') {
+        p.target = TRADING[Math.floor(Math.random() * TRADING.length)];
+      }
+    }
+    const t = p.progress;
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease in-out quad
+    const x = p.srcX + (p.target.x - p.srcX) * ease;
+    const y = p.srcY + (p.target.y - p.srcY) * ease;
+    const opacity = Math.sin(Math.PI * t) * 0.85;
+    p.el.attr('cx', x).attr('cy', y).attr('opacity', opacity);
+  });
+}
+
+// ─── NODES ───────────────────────────────────────────────────────────────────
+
+const nodesLayer = g.append('g').attr('id','nodes');
+
+function nodeRadius(n) {
+  if(n.type === 'hub') return 46;
+  if(n.type === 'trading-hub') return 38;
+  if(n.type === 'qa') return 24;
+  if(n.ring === 1) return 28;
+  return 22;
+}
+
+function nodeCardSize(n) {
+  const r = nodeRadius(n);
+  return { w: r * 2.8, h: r * 1.7 };
+}
+
+const tooltip = document.getElementById('tooltip');
+const ttName = document.getElementById('tt-name');
+const ttDot = document.getElementById('tt-dot');
+const ttStatusText = document.getElementById('tt-status-text');
+
+function showTooltip(event, d) {
+  const [mx, my] = d3.pointer(event, document.body);
+  ttName.textContent = d.label.replace('\n',' ');
+  ttDot.style.background = STATUS_COLORS[d.status];
+  ttDot.style.boxShadow = `0 0 6px ${STATUS_COLORS[d.status]}`;
+  ttStatusText.textContent = STATUS_LABELS[d.status];
+  tooltip.style.display = 'block';
+  tooltip.style.left = (mx + 16) + 'px';
+  tooltip.style.top  = (my - 10) + 'px';
+}
+function moveTooltip(event) {
+  const [mx, my] = d3.pointer(event, document.body);
+  tooltip.style.left = (mx + 16) + 'px';
+  tooltip.style.top  = (my - 10) + 'px';
+}
+function hideTooltip() {
+  tooltip.style.display = 'none';
+}
+
+function openPanel(d) {
+  document.getElementById('ip-name').textContent = d.label.replace('\n',' ');
+  document.getElementById('ip-cluster').textContent = d.cluster || d.type;
+  document.getElementById('ip-cluster2').textContent = d.cluster || d.type;
+  const color = STATUS_COLORS[d.status];
+  document.getElementById('ip-dot').style.background = color;
+  document.getElementById('ip-dot').style.boxShadow = `0 0 8px ${color}`;
+  document.getElementById('ip-status-text').textContent = STATUS_LABELS[d.status];
+  document.getElementById('ip-load').textContent = d.load || '—';
+  document.getElementById('ip-prio').textContent = d.prio || '—';
+  document.getElementById('ip-tasks').textContent = d.tasks !== undefined ? d.tasks : '—';
+  document.getElementById('ip-update').textContent = 'Gerade eben';
+  document.getElementById('info-panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('info-panel').classList.remove('open');
+}
+
+ALL_NODES.forEach(d => {
+  const r = nodeRadius(d);
+  const isHub = d.type === 'hub' || d.type === 'trading-hub';
+
+  const grp = nodesLayer.append('g')
+    .attr('class','node-group')
+    .attr('data-id', d.id)
+    .attr('transform', `translate(${d.x},${d.y})`)
+    .on('mouseover', function(event) { showTooltip(event, d); })
+    .on('mousemove', moveTooltip)
+    .on('mouseout', hideTooltip)
+    .on('click', function(event) {
+      event.stopPropagation();
+      openPanel(d);
+    });
+
+  // Glow backdrop
+  if(isHub) {
+    grp.append('circle')
+      .attr('r', r + 22)
+      .attr('fill', d.color)
+      .attr('opacity', 0.06);
+  }
+
+  // Outer pulse ring (hub only)
+  if(isHub) {
+    grp.append('circle')
+      .attr('class','hub-pulse')
+      .attr('r', r + 8)
+      .attr('fill','none')
+      .attr('stroke', d.color)
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.3);
+  }
+
+  // Card background
+  const w = r * 2.9;
+  const h = r * 1.8;
+  grp.append('rect')
+    .attr('x', -w/2).attr('y', -h/2)
+    .attr('width', w).attr('height', h)
+    .attr('rx', isHub ? 16 : 10)
+    .attr('fill', 'rgba(12,12,28,0.82)')
+    .attr('stroke', d.color)
+    .attr('stroke-width', isHub ? 1.5 : 1)
+    .attr('stroke-opacity', isHub ? 0.8 : 0.45)
+    .style('filter', `drop-shadow(0 0 ${isHub ? 12 : 5}px ${d.color}55)`);
+
+  // Label
+  const lines = d.label.split('\n');
+  if(lines.length === 1) {
+    grp.append('text')
+      .attr('text-anchor','middle')
+      .attr('dominant-baseline','middle')
+      .attr('fill', d.color)
+      .attr('font-size', isHub ? 13 : (r > 26 ? 11 : 9.5))
+      .attr('font-weight', isHub ? 800 : 600)
+      .attr('letter-spacing', '0.04em')
+      .text(d.label);
+  } else {
+    lines.forEach((line, li) => {
+      grp.append('text')
+        .attr('text-anchor','middle')
+        .attr('y', (li - (lines.length-1)/2) * (isHub ? 15 : 12))
+        .attr('fill', d.color)
+        .attr('font-size', isHub ? 12 : 10)
+        .attr('font-weight', isHub ? 800 : 600)
+        .attr('letter-spacing','0.04em')
+        .text(line);
+    });
+  }
+
+  // Status dot
+  const dotColor = STATUS_COLORS[d.status];
+  const dotX = w/2 - 8;
+  const dotY = -h/2 + 8;
+  grp.append('circle')
+    .attr('cx', dotX).attr('cy', dotY)
+    .attr('r', 4.5)
+    .attr('fill', dotColor)
+    .attr('stroke', '#080810')
+    .attr('stroke-width', 1.5)
+    .style('filter', `drop-shadow(0 0 4px ${dotColor})`);
+
+  // Animated ring on hub
+  if(isHub) {
+    const spinRing = grp.append('circle')
+      .attr('r', r + 18)
+      .attr('fill','none')
+      .attr('stroke', d.color)
+      .attr('stroke-width', 0.8)
+      .attr('stroke-dasharray','12 20')
+      .attr('opacity', 0.2);
+
+    // Animate spin
+    function spinStep(t) {
+      spinRing.attr('stroke-dashoffset', -t * 0.02);
+      requestAnimationFrame(spinStep);
+    }
+    requestAnimationFrame(spinStep);
+  }
+});
+
+// ─── ACTIVE PULSE ANIMATION ──────────────────────────────────────────────────
+
+const ACTIVE_NODES = ALL_NODES.filter(n => n.type !== 'hub' && n.type !== 'trading
