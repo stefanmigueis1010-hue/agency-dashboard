@@ -2,687 +2,335 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stef_life Agency Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Stef_life Agency HQ</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: #080810;
-    color: #fff;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
-  }
-
-  #header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 14px 28px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: linear-gradient(to bottom, rgba(8,8,16,0.95) 60%, transparent);
-  }
-
-  #header h1 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #D4AF37;
-    text-shadow: 0 0 18px rgba(212,175,55,0.6);
-  }
-
-  #header .subtitle {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  #header .dot-live {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #00ff88;
-    box-shadow: 0 0 8px #00ff88;
-    animation: blink 2s ease-in-out infinite;
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  #canvas-wrap {
-    width: 100vw;
-    height: 100vh;
-    cursor: grab;
-  }
-  #canvas-wrap:active { cursor: grabbing; }
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Tooltip */
-  #tooltip {
-    position: fixed;
-    pointer-events: none;
-    z-index: 200;
-    display: none;
-    padding: 10px 16px;
-    border-radius: 10px;
-    background: rgba(12, 12, 28, 0.88);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(212,175,55,0.25);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
-    font-size: 0.82rem;
-    min-width: 140px;
-  }
-  #tooltip .tt-name {
-    font-weight: 700;
-    font-size: 0.92rem;
-    margin-bottom: 4px;
-  }
-  #tooltip .tt-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.6);
-  }
-  #tooltip .tt-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-  }
-
-  /* Info Panel */
-  #info-panel {
-    position: fixed;
-    top: 70px;
-    right: -360px;
-    width: 320px;
-    max-height: calc(100vh - 90px);
-    overflow-y: auto;
-    z-index: 150;
-    transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
-    border-radius: 16px 0 0 16px;
-    background: rgba(12, 12, 28, 0.85);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-right: none;
-    box-shadow: -8px 0 40px rgba(0,0,0,0.5);
-    padding: 24px 20px;
-  }
-  #info-panel.open { right: 0; }
-
-  #info-panel .ip-close {
-    position: absolute;
-    top: 14px; right: 16px;
-    background: none; border: none;
-    color: rgba(255,255,255,0.5);
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-  #info-panel .ip-close:hover { color: #fff; }
-
-  #info-panel .ip-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.35);
-    margin-bottom: 6px;
-  }
-  #info-panel .ip-name {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin-bottom: 4px;
-  }
-  #info-panel .ip-cluster {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.45);
-    margin-bottom: 18px;
-  }
-  #info-panel .ip-status-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    margin-bottom: 20px;
-  }
-  #info-panel .ip-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
-  #info-panel .ip-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.07);
-    margin: 16px 0;
-  }
-  #info-panel .ip-metric {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    margin-bottom: 10px;
-    color: rgba(255,255,255,0.65);
-  }
-  #info-panel .ip-metric span:last-child {
-    color: #fff;
-    font-weight: 600;
-  }
-
-  /* Node styles via SVG */
-  .node-group { cursor: pointer; }
-
-  .node-ring {
-    fill: none;
-    stroke-width: 1;
-    opacity: 0.15;
-    stroke-dasharray: 4 4;
-    animation: spin-ring 60s linear infinite;
-  }
-
-  @keyframes spin-ring {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .particle {
-    pointer-events: none;
-  }
-
-  /* Scrollbar */
-  #info-panel::-webkit-scrollbar { width: 4px; }
-  #info-panel::-webkit-scrollbar-track { background: transparent; }
-  #info-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#060612;color:#fff;font-family:system-ui,-apple-system,sans-serif;overflow:hidden;height:100vh;width:100vw}
+#hud{position:fixed;top:0;left:0;right:0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,6,18,0.9);border-bottom:1px solid rgba(212,175,55,0.3);z-index:100;backdrop-filter:blur(10px)}
+#hud h1{font-size:1rem;font-weight:700;color:#D4AF37;letter-spacing:2px}
+#hud .stats{font-size:.75rem;color:#888;display:flex;gap:16px}
+#hud .stats span{color:#D4AF37}
+#canvas-wrap{position:absolute;top:48px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab}
+#canvas-wrap:active{cursor:grabbing}
+#world{position:absolute;transform-origin:0 0}
+.room{position:absolute;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:box-shadow .3s;backdrop-filter:blur(4px);user-select:none}
+.room.gold{background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.4)}
+.room.cyan{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.4)}
+.room.green{background:rgba(0,255,120,0.06);border:1px solid rgba(0,255,120,0.4)}
+.room.center{background:rgba(212,175,55,0.12);border:2px solid rgba(212,175,55,0.8)}
+.room.center2{background:rgba(0,212,255,0.12);border:2px solid rgba(0,212,255,0.8)}
+.room.active.gold{box-shadow:0 0 20px rgba(212,175,55,0.8),0 0 40px rgba(212,175,55,0.4);border-color:#D4AF37}
+.room.active.cyan{box-shadow:0 0 20px rgba(0,212,255,0.8),0 0 40px rgba(0,212,255,0.4);border-color:#00d4ff}
+.room.active.green{box-shadow:0 0 20px rgba(0,255,120,0.8);border-color:#00ff78}
+.room .name{font-size:.62rem;font-weight:600;text-align:center;padding:0 6px;line-height:1.2}
+.room.gold .name{color:#D4AF37}
+.room.cyan .name{color:#00d4ff}
+.room.green .name{color:#00ff78}
+.room.center .name{color:#D4AF37;font-size:.85rem;font-weight:800}
+.room.center2 .name{color:#00d4ff;font-size:.85rem;font-weight:800}
+.dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.dot.active{background:#00ff78;box-shadow:0 0 6px #00ff78;animation:pulse 1s infinite}
+.dot.ready{background:#D4AF37}
+.dot.idle{background:#444}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.7}}
+#tooltip{position:fixed;pointer-events:none;background:rgba(10,10,30,0.95);border:1px solid rgba(212,175,55,0.5);border-radius:8px;padding:10px 14px;font-size:.8rem;z-index:200;display:none;backdrop-filter:blur(10px)}
+#tooltip .t-name{font-weight:700;color:#D4AF37;margin-bottom:4px}
+#tooltip .t-status{color:#888}
+#info-panel{position:fixed;right:0;top:48px;bottom:0;width:280px;background:rgba(10,10,30,0.97);border-left:1px solid rgba(212,175,55,0.3);padding:20px;z-index:150;transform:translateX(100%);transition:transform .3s;backdrop-filter:blur(20px)}
+#info-panel.open{transform:translateX(0)}
+#info-panel h2{color:#D4AF37;font-size:1rem;margin-bottom:8px}
+#info-panel .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;margin-bottom:12px}
+#info-panel .tag.gold{background:rgba(212,175,55,0.2);color:#D4AF37;border:1px solid rgba(212,175,55,0.4)}
+#info-panel .tag.cyan{background:rgba(0,212,255,0.2);color:#00d4ff;border:1px solid rgba(0,212,255,0.4)}
+#info-panel p{font-size:.8rem;color:#aaa;line-height:1.6;margin-bottom:12px}
+#info-panel .task{background:rgba(255,255,255,0.04);border-radius:6px;padding:10px;font-size:.75rem;color:#ccc}
+#info-panel .task-label{color:#888;font-size:.65rem;margin-bottom:4px}
+#close-panel{position:absolute;top:16px;right:16px;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer}
+#live-bar{position:fixed;bottom:0;left:0;right:0;height:32px;background:rgba(6,6,18,0.9);border-top:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;padding:0 16px;gap:8px;z-index:100;overflow:hidden}
+#live-bar .lb-label{font-size:.65rem;color:#D4AF37;font-weight:700;white-space:nowrap}
+#live-ticker{font-size:.65rem;color:#888;white-space:nowrap;animation:ticker 30s linear infinite}
+@keyframes ticker{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+svg#lines{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
 </style>
 </head>
 <body>
-
-<div id="header">
-  <div class="dot-live"></div>
-  <div>
-    <h1>Stef_life Agency</h1>
-    <div class="subtitle">Live Operations Dashboard — 30 Teams</div>
+<div id="hud">
+  <h1>⚡ STEF_LIFE AGENCY HQ</h1>
+  <div class="stats">
+    <div>Agents aktiv: <span id="stat-active">0</span></div>
+    <div>Teams: <span>30</span></div>
+    <div id="clock"></div>
   </div>
 </div>
-
 <div id="canvas-wrap">
-  <svg id="viz"></svg>
-</div>
-
-<div id="tooltip">
-  <div class="tt-name" id="tt-name"></div>
-  <div class="tt-status">
-    <div class="tt-dot" id="tt-dot"></div>
-    <span id="tt-status-text"></span>
+  <div id="world">
+    <svg id="lines"></svg>
   </div>
 </div>
-
+<div id="tooltip"><div class="t-name"></div><div class="t-status"></div></div>
 <div id="info-panel">
-  <button class="ip-close" onclick="closePanel()">✕</button>
-  <div class="ip-label">Abteilung</div>
-  <div class="ip-name" id="ip-name">—</div>
-  <div class="ip-cluster" id="ip-cluster">—</div>
-  <div class="ip-status-row">
-    <div class="ip-dot" id="ip-dot"></div>
-    <span id="ip-status-text">—</span>
-  </div>
-  <div class="ip-divider"></div>
-  <div class="ip-metric"><span>Cluster</span><span id="ip-cluster2">—</span></div>
-  <div class="ip-metric"><span>Auslastung</span><span id="ip-load">—</span></div>
-  <div class="ip-metric"><span>Priorität</span><span id="ip-prio">—</span></div>
-  <div class="ip-metric"><span>Tasks aktiv</span><span id="ip-tasks">—</span></div>
-  <div class="ip-divider"></div>
-  <div class="ip-metric"><span>Letzter Update</span><span id="ip-update">Gerade eben</span></div>
+  <button id="close-panel">✕</button>
+  <h2 id="ip-name">—</h2>
+  <span id="ip-tag" class="tag gold">Stef_life Agentur</span>
+  <p id="ip-desc">—</p>
+  <div class="task"><div class="task-label">AKTUELLER TASK</div><div id="ip-task">—</div></div>
+</div>
+<div id="live-bar">
+  <div class="lb-label">● LIVE</div>
+  <div id="live-ticker">Stef_life Agency HQ — Alle Systeme aktiv — Trading Zentrale online — Nova koordiniert 30 Teams — Automation läuft — Content Pipeline aktiv</div>
 </div>
 
 <script>
-// ─── DATA ───────────────────────────────────────────────────────────────────
+const ROOMS = [
+  // Zentrum Stef_life
+  {id:'nova',name:'Nova + Nora\nHub',type:'center',x:380,y:220,w:130,h:80,cat:'Stef_life',desc:'Zentrale KI-Koordination. Nova empfängt alle Aufgaben, Nora leitet die Agentur.',tasks:['Anfragen routen','Teams koordinieren','CEO Briefing']},
+  // Ring 1 — Content & Media
+  {id:'content',name:'Content',type:'gold',x:160,y:80,w:90,h:55,cat:'Stef_life',desc:'Video-Ideen, Themen, Content-Plan & Kalender.',tasks:['Content-Kalender erstellen','Video-Ideen generieren','Posting-Plan']},
+  {id:'copy',name:'Copywriting',type:'gold',x:260,y:50,w:90,h:55,cat:'Stef_life',desc:'Titel, Beschreibungen, Hooks, Sales-Texte, Captions.',tasks:['YouTube Titel optimieren','Hook schreiben','Caption erstellen']},
+  {id:'thumb',name:'Thumbnail',type:'gold',x:370,y:40,w:90,h:55,cat:'Stef_life',desc:'Thumbnail-Konzepte, Design-Briefs, Cover-Gestaltung.',tasks:['Thumbnail-Konzept entwickeln','Design-Brief erstellen']},
+  {id:'shorts',name:'Shorts',type:'gold',x:470,y:50,w:90,h:55,cat:'Stef_life',desc:'Kurzvideos, Clips, Reels aus bestehenden Videos.',tasks:['Shorts schneiden','Clip auswählen']},
+  {id:'seo',name:'SEO',type:'gold',x:560,y:80,w:90,h:55,cat:'Stef_life',desc:'Keywords, Tags, Ranking-Optimierung.',tasks:['Keyword-Recherche','Tags optimieren']},
+  {id:'youtube',name:'YouTube',type:'gold',x:600,y:170,w:90,h:55,cat:'Stef_life',desc:'YouTube Analytics, Views, Wachstum, Statistiken.',tasks:['Analytics auswerten','Wachstum analysieren']},
+  // Ring 2 — Marketing
+  {id:'marketing',name:'Marketing',type:'gold',x:560,y:280,w:90,h:55,cat:'Stef_life',desc:'Funnel, Affiliate, BitUnix, Verkauf.',tasks:['Funnel optimieren','Affiliate tracken']},
+  {id:'ads',name:'Ads',type:'gold',x:600,y:360,w:90,h:55,cat:'Stef_life',desc:'Werbung, Instagram-Anzeigen, Kampagnen.',tasks:['Ad-Kampagne erstellen','Budget optimieren']},
+  {id:'pr',name:'PR',type:'gold',x:540,y:430,w:90,h:55,cat:'Stef_life',desc:'Podcast, Kooperationen, Sponsoring.',tasks:['Kooperation anfragen','PR-Text erstellen']},
+  {id:'email',name:'Email',type:'gold',x:450,y:460,w:90,h:55,cat:'Stef_life',desc:'Newsletter, Sequenzen, Listen-Management.',tasks:['Newsletter erstellen','Sequenz aufbauen']},
+  {id:'community',name:'Community',type:'gold',x:350,y:470,w:90,h:55,cat:'Stef_life',desc:'Discord, Community-Management, Telegram.',tasks:['Community moderieren','Engagement steigern']},
+  {id:'discord',name:'Discord',type:'gold',x:250,y:460,w:90,h:55,cat:'Stef_life',desc:'Discord-Tickets, Server-Management.',tasks:['Tickets bearbeiten','Channels verwalten']},
+  // Ring 3 — Produkt & Tech
+  {id:'produkt',name:'Produkt',type:'gold',x:160,y:410,w:90,h:55,cat:'Stef_life',desc:'Neue Kurse, Mentoring, Produkt-Entwicklung.',tasks:['Kurs-Konzept erstellen','Preise kalkulieren']},
+  {id:'webdesign',name:'Webdesign',type:'gold',x:90,y:340,w:90,h:55,cat:'Stef_life',desc:'Website, Landing Pages, Funnel-Design.',tasks:['Landing Page bauen','Funnel designen']},
+  {id:'branding',name:'Branding',type:'gold',x:70,y:260,w:90,h:55,cat:'Stef_life',desc:'Logo, Farben, visuelle Identität.',tasks:['Brand Guide erstellen','Logo anpassen']},
+  {id:'automation',name:'Automation',type:'gold',x:90,y:170,w:90,h:55,cat:'Stef_life',desc:'n8n Workflows, Prozess-Automatisierung.',tasks:['Workflow bauen','Prozess automatisieren']},
+  {id:'it',name:'IT',type:'gold',x:130,y:100,w:90,h:55,cat:'Stef_life',desc:'Dashboards, Webhooks, Infrastruktur.',tasks:['Dashboard deployen','Webhook einrichten']},
+  {id:'library',name:'Library',type:'gold',x:210,y:420,w:90,h:55,cat:'Stef_life',desc:'Bücher, PDFs, Wissen archivieren.',tasks:['PDF archivieren','Wissen strukturieren']},
+  {id:'planning',name:'Planning',type:'gold',x:320,y:100,w:90,h:55,cat:'Stef_life',desc:'Jahresplan, Strategie, OKRs, Roadmap.',tasks:['Q4 Roadmap planen','OKRs definieren']},
+  {id:'data',name:'Data',type:'gold',x:490,y:120,w:90,h:55,cat:'Stef_life',desc:'KPIs, Dashboards, Metriken.',tasks:['KPIs auswerten','Report erstellen']},
+  {id:'analyst',name:'Analysten',type:'gold',x:200,y:160,w:90,h:55,cat:'Stef_life',desc:'Deep-Dives, Marktanalysen, Reports.',tasks:['Markt analysieren','Report schreiben']},
+  // Trading Zentrale — Zentrum
+  {id:'trading-hub',name:'Trading\nZentrale',type:'center2',x:880,y:220,w:120,h:75,cat:'Trading',desc:'Zentrale Trading-Intelligenz. Koordiniert alle 7 Trading-Teams.',tasks:['Bias berechnen','Markt überwachen']},
+  // Trading Teams
+  {id:'makro',name:'Makro',type:'cyan',x:820,y:80,w:90,h:55,cat:'Trading',desc:'Fed, EZB, DXY, Makro-Wirtschaft.',tasks:['DXY analysieren','Fed-Erwartungen prüfen']},
+  {id:'onchain',name:'On-Chain',type:'cyan',x:940,y:60,w:90,h:55,cat:'Trading',desc:'SOPR, MVRV, Exchange Flows.',tasks:['SOPR auswerten','Exchange Flows checken']},
+  {id:'liq',name:'Liquidations',type:'cyan',x:1050,y:110,w:90,h:55,cat:'Trading',desc:'OI, Funding Rate, Coinglass-Daten.',tasks:['OI überwachen','Funding Rate checken']},
+  {id:'cot',name:'COT',type:'cyan',x:1080,y:220,w:90,h:55,cat:'Trading',desc:'CFTC, Net Positions, COT-Index.',tasks:['COT-Report auswerten','Net Positions berechnen']},
+  {id:'news',name:'News',type:'cyan',x:1050,y:330,w:90,h:55,cat:'Trading',desc:'Breaking News, Events, Nachrichten.',tasks:['News überwachen','Events tracken']},
+  {id:'technical',name:'Technical',type:'cyan',x:940,y:390,w:90,h:55,cat:'Trading',desc:'SMC, Order Blocks, FVG, Struktur.',tasks:['Chart analysieren','SMC-Struktur prüfen']},
+  {id:'bias',name:'Bias Report',type:'cyan',x:820,y:380,w:90,h:55,cat:'Trading',desc:'Tages-Bias, Reports, Zusammenfassungen.',tasks:['Bias berechnen','Daily Report erstellen']},
+  // QA
+  {id:'qa',name:'QA',type:'green',x:580,y:480,w:80,h:50,cat:'QA',desc:'4-Augen-Prinzip. Prüft alle Outputs vor Versand.',tasks:['Output prüfen','QA-Check durchführen']}
+];
 
-const STATUS_OPTIONS = ['active', 'active', 'active', 'idle', 'offline'];
-const STATUS_COLORS  = { active: '#00ff88', idle: '#f5a623', offline: '#555577' };
-const STATUS_LABELS  = { active: 'Aktiv', idle: 'Standby', offline: 'Offline' };
+const world = document.getElementById('world');
+const svg = document.getElementById('lines');
+const wrap = document.getElementById('canvas-wrap');
 
-function randStatus() {
-  return STATUS_OPTIONS[Math.floor(Math.random() * STATUS_OPTIONS.length)];
-}
-function randLoad() {
-  return Math.floor(Math.random() * 60 + 30) + '%';
-}
-function randPrio() {
-  const p = ['Hoch','Mittel','Normal'];
-  return p[Math.floor(Math.random()*p.length)];
-}
-function randTasks() {
-  return Math.floor(Math.random() * 12 + 1);
-}
+// World-Größe
+const W = 1220, H = 600;
+world.style.width = W+'px';
+world.style.height = H+'px';
+svg.setAttribute('width', W);
+svg.setAttribute('height', H);
 
-// Hub center
-const HUB = {
-  id: 'hub', label: 'Stef_life\nHub', type: 'hub',
-  status: 'active', color: '#D4AF37', ring: 0
-};
+// Zoom/Pan State
+let scale = 1, tx = 0, ty = 0;
+let dragging = false, lastX = 0, lastY = 0;
 
-// Ring 1 — Content & Media
-const RING1 = ['Content','Copywriting','Thumbnail','Shorts','SEO','YouTube'].map((name, i) => ({
-  id: 'r1_'+i, label: name, type: 'stef', color: '#D4AF37',
-  ring: 1, angle: (i / 6) * Math.PI * 2,
-  status: randStatus(), load: randLoad(), prio: randPrio(), tasks: randTasks(),
-  cluster: 'Content & Media'
-}));
-
-// Ring 2 — Marketing & Tech
-const RING2_NAMES = ['Marketing','Ads','PR','Email','Community','Discord','Produkt','Webdesign','Branding','Automation','IT','Library','Planning','Data','Analysten'];
-const RING2 = RING2_NAMES.map((name, i) => ({
-  id: 'r2_'+i, label: name, type: 'stef', color: '#D4AF37',
-  ring: 2, angle: (i / RING2_NAMES.length) * Math.PI * 2,
-  status: randStatus(), load: randLoad(), prio: randPrio(), tasks: randTasks(),
-  cluster: 'Marketing & Tech'
-}));
-
-// Trading cluster
-const TRADING_HUB = {
-  id: 'trading_hub', label: 'Trading\nZentrale', type: 'trading-hub',
-  status: 'active', color: '#00d4ff', ring: 0, cluster: 'Trading'
-};
-const TRADING_NAMES = ['Makro','On-Chain','Liquidations','COT','News','Technical','Bias Report'];
-const TRADING = TRADING_NAMES.map((name, i) => ({
-  id: 'tr_'+i, label: name, type: 'trading', color: '#00d4ff',
-  ring: 'tr', angle: (i / TRADING_NAMES.length) * Math.PI * 2,
-  status: randStatus(), load: randLoad(), prio: randPrio(), tasks: randTasks(),
-  cluster: 'Trading Zentrale'
-}));
-
-// QA
-const QA = {
-  id: 'qa', label: 'QA', type: 'qa',
-  status: 'active', color: '#9b59b6', ring: 'qa',
-  load: randLoad(), prio: 'Hoch', tasks: randTasks(),
-  cluster: 'Quality Assurance'
-};
-
-// ─── LAYOUT ─────────────────────────────────────────────────────────────────
-
-const W = window.innerWidth;
-const H = window.innerHeight;
-const CX = W * 0.38;  // Stef_life hub center
-const CY = H * 0.5;
-const R1 = 155;       // Ring 1 radius
-const R2 = 290;       // Ring 2 radius
-const TR_X = CX + 520; // Trading cluster X
-const TR_Y = H * 0.42;
-const TR_R = 165;
-const QA_X = CX + 60;
-const QA_Y = CY + 390;
-
-// Assign positions
-HUB.x = CX; HUB.y = CY;
-
-RING1.forEach(n => {
-  n.x = CX + R1 * Math.cos(n.angle - Math.PI/2);
-  n.y = CY + R1 * Math.sin(n.angle - Math.PI/2);
-});
-RING2.forEach(n => {
-  n.x = CX + R2 * Math.cos(n.angle - Math.PI/2);
-  n.y = CY + R2 * Math.sin(n.angle - Math.PI/2);
-});
-
-TRADING_HUB.x = TR_X; TRADING_HUB.y = TR_Y;
-TRADING.forEach(n => {
-  n.x = TR_X + TR_R * Math.cos(n.angle - Math.PI/2);
-  n.y = TR_Y + TR_R * Math.sin(n.angle - Math.PI/2);
-});
-
-QA.x = QA_X; QA.y = QA_Y;
-
-const ALL_NODES = [HUB, ...RING1, ...RING2, TRADING_HUB, ...TRADING, QA];
-
-// ─── SVG SETUP ──────────────────────────────────────────────────────────────
-
-const svg = d3.select('#viz');
-
-// Defs
-const defs = svg.append('defs');
-
-// Glow filters
-function addGlow(id, color, blur=8, strength=2) {
-  const f = defs.append('filter').attr('id', id).attr('x','-50%').attr('y','-50%').attr('width','200%').attr('height','200%');
-  f.append('feGaussianBlur').attr('stdDeviation', blur).attr('result','blur');
-  const merge = f.append('feMerge');
-  for(let i=0;i<strength;i++) merge.append('feMergeNode').attr('in','blur');
-  merge.append('feMergeNode').attr('in','SourceGraphic');
-}
-addGlow('glow-gold', '#D4AF37', 6, 2);
-addGlow('glow-cyan', '#00d4ff', 6, 2);
-addGlow('glow-green', '#00ff88', 10, 3);
-addGlow('glow-hub', '#D4AF37', 14, 3);
-addGlow('glow-trading-hub', '#00d4ff', 14, 3);
-addGlow('glow-purple', '#9b59b6', 6, 2);
-
-// Radial gradient background
-const bgGrad = defs.append('radialGradient').attr('id','bg-grad').attr('cx','40%').attr('cy','50%').attr('r','60%');
-bgGrad.append('stop').attr('offset','0%').attr('stop-color','#0d0d20').attr('stop-opacity',1);
-bgGrad.append('stop').attr('offset','100%').attr('stop-color','#080810').attr('stop-opacity',1);
-
-// Particle marker
-const marker = defs.append('circle').attr('id','particle').attr('r',2.5);
-
-const g = svg.append('g').attr('id','scene');
-
-// Background rect
-svg.insert('rect','g').attr('width','100%').attr('height','100%').attr('fill','url(#bg-grad)');
-
-// ─── ZOOM / PAN ──────────────────────────────────────────────────────────────
-
-const zoom = d3.zoom()
-  .scaleExtent([0.3, 3])
-  .on('zoom', (event) => {
-    g.attr('transform', event.transform);
-  });
-
-svg.call(zoom);
-
-// Initial transform: center-ish
-svg.call(zoom.transform, d3.zoomIdentity.translate(W*0.04, H*0.02).scale(0.9));
-
-// ─── DECORATIVE RINGS ────────────────────────────────────────────────────────
-
-// Stef_life orbit rings
-[R1, R2].forEach((r, i) => {
-  g.append('circle')
-    .attr('cx', CX).attr('cy', CY).attr('r', r)
-    .attr('fill','none')
-    .attr('stroke', '#D4AF37')
-    .attr('stroke-width', 0.5)
-    .attr('stroke-dasharray', '6 10')
-    .attr('opacity', 0.12);
-});
-
-// Trading orbit ring
-g.append('circle')
-  .attr('cx', TR_X).attr('cy', TR_Y).attr('r', TR_R)
-  .attr('fill','none')
-  .attr('stroke','#00d4ff')
-  .attr('stroke-width', 0.5)
-  .attr('stroke-dasharray','6 10')
-  .attr('opacity', 0.12);
-
-// Cross-cluster connector line (hub → trading hub)
-g.append('line')
-  .attr('x1', CX).attr('y1', CY)
-  .attr('x2', TR_X).attr('y2', TR_Y)
-  .attr('stroke','url(#cross-grad)')
-  .attr('stroke-width', 1.2)
-  .attr('stroke-dasharray','8 6')
-  .attr('opacity', 0.25);
-
-// QA connector
-g.append('line')
-  .attr('x1', CX).attr('y1', CY)
-  .attr('x2', QA_X).attr('y2', QA_Y)
-  .attr('stroke','#9b59b6')
-  .attr('stroke-width', 1)
-  .attr('stroke-dasharray','4 6')
-  .attr('opacity', 0.2);
-
-// Cross-cluster gradient
-const cgGrad = defs.append('linearGradient').attr('id','cross-grad')
-  .attr('x1','0%').attr('y1','0%').attr('x2','100%').attr('y2','0%');
-cgGrad.append('stop').attr('offset','0%').attr('stop-color','#D4AF37');
-cgGrad.append('stop').attr('offset','100%').attr('stop-color','#00d4ff');
-
-// ─── LINKS (HUB → NODES) ─────────────────────────────────────────────────────
-
-const linksLayer = g.append('g').attr('id','links');
-const particlesLayer = g.append('g').attr('id','particles');
-
-// Stef_life links (ring1 + ring2 → hub)
-[...RING1, ...RING2].forEach(n => {
-  linksLayer.append('line')
-    .attr('class','link-stef')
-    .attr('data-id', n.id)
-    .attr('x1', CX).attr('y1', CY)
-    .attr('x2', n.x).attr('y2', n.y)
-    .attr('stroke','#D4AF37').attr('stroke-width', 0.7)
-    .attr('opacity', 0.18);
-});
-
-// Trading links
-TRADING.forEach(n => {
-  linksLayer.append('line')
-    .attr('class','link-trading')
-    .attr('data-id', n.id)
-    .attr('x1', TR_X).attr('y1', TR_Y)
-    .attr('x2', n.x).attr('y2', n.y)
-    .attr('stroke','#00d4ff').attr('stroke-width', 0.7)
-    .attr('opacity', 0.18);
-});
-
-// ─── PARTICLE SYSTEM ─────────────────────────────────────────────────────────
-
-const PARTICLE_POOL = [];
-const NUM_PARTICLES_STEF = 18;
-const NUM_PARTICLES_TRADING = 8;
-
-function createParticles(count, nodes, srcX, srcY, color) {
-  for(let i = 0; i < count; i++) {
-    const target = nodes[Math.floor(Math.random() * nodes.length)];
-    const progress = Math.random();
-    const p = {
-      target,
-      srcX, srcY,
-      color,
-      progress,
-      speed: 0.0008 + Math.random() * 0.0012,
-      size: 1.5 + Math.random() * 2
-    };
-    const el = particlesLayer.append('circle')
-      .attr('r', p.size)
-      .attr('fill', color)
-      .attr('opacity', 0.7)
-      .style('filter', `drop-shadow(0 0 3px ${color})`);
-    p.el = el;
-    PARTICLE_POOL.push(p);
-  }
+function applyTransform(){
+  world.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
 }
 
-createParticles(NUM_PARTICLES_STEF, [...RING1, ...RING2], CX, CY, '#D4AF37');
-createParticles(NUM_PARTICLES_TRADING, TRADING, TR_X, TR_Y, '#00d4ff');
-// QA particle
-createParticles(2, [QA], CX, CY, '#9b59b6');
+// Initial: zentriert im Viewport
+function initView(){
+  const vw = wrap.clientWidth, vh = wrap.clientHeight - 32;
+  scale = Math.min(vw/W, vh/H) * 0.9;
+  tx = (vw - W*scale)/2;
+  ty = (vh - H*scale)/2;
+  applyTransform();
+}
+initView();
+window.addEventListener('resize', initView);
 
-function animateParticles() {
-  PARTICLE_POOL.forEach(p => {
-    p.progress += p.speed;
-    if(p.progress > 1) {
-      p.progress = 0;
-      // Randomly pick new target
-      if(p.color === '#D4AF37') {
-        const nodes = [...RING1, ...RING2];
-        p.target = nodes[Math.floor(Math.random() * nodes.length)];
-      } else if(p.color === '#00d4ff') {
-        p.target = TRADING[Math.floor(Math.random() * TRADING.length)];
-      }
+// Scroll-Zoom
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = wrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  const newScale = Math.min(4, Math.max(0.3, scale * delta));
+  tx = mx - (mx - tx) * (newScale/scale);
+  ty = my - (my - ty) * (newScale/scale);
+  scale = newScale;
+  applyTransform();
+}, {passive:false});
+
+// Drag
+wrap.addEventListener('mousedown', e => { dragging=true; lastX=e.clientX; lastY=e.clientY; });
+window.addEventListener('mousemove', e => {
+  if(!dragging) return;
+  tx += e.clientX - lastX; ty += e.clientY - lastY;
+  lastX=e.clientX; lastY=e.clientY;
+  applyTransform();
+});
+window.addEventListener('mouseup', () => dragging=false);
+
+// Touch
+let touches = {};
+wrap.addEventListener('touchstart', e => {
+  [...e.changedTouches].forEach(t => touches[t.identifier]={x:t.clientX,y:t.clientY});
+});
+wrap.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if(e.touches.length === 1){
+    const t = e.touches[0];
+    const prev = touches[t.identifier];
+    if(prev){ tx += t.clientX-prev.x; ty += t.clientY-prev.y; applyTransform(); }
+    touches[t.identifier]={x:t.clientX,y:t.clientY};
+  } else if(e.touches.length === 2){
+    const [a,b] = [...e.touches];
+    const pa = touches[a.identifier], pb = touches[b.identifier];
+    if(pa&&pb){
+      const distPrev = Math.hypot(pa.x-pb.x,pa.y-pb.y);
+      const distNow = Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+      const delta = distNow/distPrev;
+      const cx = (a.clientX+b.clientX)/2, cy = (a.clientY+b.clientY)/2;
+      const rect = wrap.getBoundingClientRect();
+      const mx=cx-rect.left, my=cy-rect.top;
+      const newScale = Math.min(4,Math.max(0.3,scale*delta));
+      tx = mx-(mx-tx)*(newScale/scale); ty = my-(my-ty)*(newScale/scale);
+      scale=newScale; applyTransform();
     }
-    const t = p.progress;
-    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease in-out quad
-    const x = p.srcX + (p.target.x - p.srcX) * ease;
-    const y = p.srcY + (p.target.y - p.srcY) * ease;
-    const opacity = Math.sin(Math.PI * t) * 0.85;
-    p.el.attr('cx', x).attr('cy', y).attr('opacity', opacity);
+    touches[a.identifier]={x:a.clientX,y:a.clientY};
+    touches[b.identifier]={x:b.clientX,y:b.clientY};
+  }
+},{passive:false});
+wrap.addEventListener('touchend', e => {
+  [...e.changedTouches].forEach(t => delete touches[t.identifier]);
+});
+
+// SVG Lines
+const centerNodes = ROOMS.filter(r => r.type==='center'||r.type==='center2');
+ROOMS.forEach(r => {
+  if(r.type==='center'||r.type==='center2') return;
+  const hub = r.cat==='Trading' ? centerNodes.find(c=>c.id==='trading-hub') : centerNodes.find(c=>c.id==='nova');
+  if(!hub) return;
+  const x1=hub.x+hub.w/2, y1=hub.y+hub.h/2, x2=r.x+r.w/2, y2=r.y+r.h/2;
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+  line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+  const col = r.type==='cyan'?'rgba(0,212,255,0.15)':r.type==='green'?'rgba(0,255,120,0.2)':'rgba(212,175,55,0.15)';
+  line.setAttribute('stroke',col); line.setAttribute('stroke-width','1');
+  svg.appendChild(line);
+});
+
+// Verbindung Nova ↔ Trading Hub
+const novaHub=ROOMS.find(r=>r.id==='nova'), tradHub=ROOMS.find(r=>r.id==='trading-hub');
+const connLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+connLine.setAttribute('x1',novaHub.x+novaHub.w); connLine.setAttribute('y1',novaHub.y+novaHub.h/2);
+connLine.setAttribute('x2',tradHub.x); connLine.setAttribute('y2',tradHub.y+tradHub.h/2);
+connLine.setAttribute('stroke','rgba(212,175,55,0.3)'); connLine.setAttribute('stroke-width','1.5');
+connLine.setAttribute('stroke-dasharray','4,4');
+svg.appendChild(connLine);
+
+// Animierte Partikel auf Lines
+const particles = [];
+function addParticle(x1,y1,x2,y2,col){
+  particles.push({x1,y1,x2,y2,col,t:Math.random(),speed:0.003+Math.random()*0.004});
+}
+ROOMS.forEach(r=>{
+  if(r.type==='center'||r.type==='center2') return;
+  const hub = r.cat==='Trading'?tradHub:novaHub;
+  const col = r.type==='cyan'?'rgba(0,212,255,0.8)':r.type==='green'?'rgba(0,255,120,0.8)':'rgba(212,175,55,0.8)';
+  addParticle(hub.x+hub.w/2,hub.y+hub.h/2,r.x+r.w/2,r.y+r.h/2,col);
+});
+
+// Canvas für Partikel
+const pCanvas = document.createElement('canvas');
+pCanvas.style.cssText='position:absolute;top:0;left:0;pointer-events:none;z-index:1';
+pCanvas.width=W; pCanvas.height=H;
+world.appendChild(pCanvas);
+const ctx = pCanvas.getContext('2d');
+
+function animParticles(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{
+    p.t=(p.t+p.speed)%1;
+    const x=p.x1+(p.x2-p.x1)*p.t, y=p.y1+(p.y2-p.y1)*p.t;
+    ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2);
+    ctx.fillStyle=p.col; ctx.fill();
   });
+  requestAnimationFrame(animParticles);
 }
+animParticles();
 
-// ─── NODES ───────────────────────────────────────────────────────────────────
-
-const nodesLayer = g.append('g').attr('id','nodes');
-
-function nodeRadius(n) {
-  if(n.type === 'hub') return 46;
-  if(n.type === 'trading-hub') return 38;
-  if(n.type === 'qa') return 24;
-  if(n.ring === 1) return 28;
-  return 22;
-}
-
-function nodeCardSize(n) {
-  const r = nodeRadius(n);
-  return { w: r * 2.8, h: r * 1.7 };
-}
-
+// Rooms erstellen
+const roomEls = {};
 const tooltip = document.getElementById('tooltip');
-const ttName = document.getElementById('tt-name');
-const ttDot = document.getElementById('tt-dot');
-const ttStatusText = document.getElementById('tt-status-text');
 
-function showTooltip(event, d) {
-  const [mx, my] = d3.pointer(event, document.body);
-  ttName.textContent = d.label.replace('\n',' ');
-  ttDot.style.background = STATUS_COLORS[d.status];
-  ttDot.style.boxShadow = `0 0 6px ${STATUS_COLORS[d.status]}`;
-  ttStatusText.textContent = STATUS_LABELS[d.status];
-  tooltip.style.display = 'block';
-  tooltip.style.left = (mx + 16) + 'px';
-  tooltip.style.top  = (my - 10) + 'px';
-}
-function moveTooltip(event) {
-  const [mx, my] = d3.pointer(event, document.body);
-  tooltip.style.left = (mx + 16) + 'px';
-  tooltip.style.top  = (my - 10) + 'px';
-}
-function hideTooltip() {
-  tooltip.style.display = 'none';
-}
-
-function openPanel(d) {
-  document.getElementById('ip-name').textContent = d.label.replace('\n',' ');
-  document.getElementById('ip-cluster').textContent = d.cluster || d.type;
-  document.getElementById('ip-cluster2').textContent = d.cluster || d.type;
-  const color = STATUS_COLORS[d.status];
-  document.getElementById('ip-dot').style.background = color;
-  document.getElementById('ip-dot').style.boxShadow = `0 0 8px ${color}`;
-  document.getElementById('ip-status-text').textContent = STATUS_LABELS[d.status];
-  document.getElementById('ip-load').textContent = d.load || '—';
-  document.getElementById('ip-prio').textContent = d.prio || '—';
-  document.getElementById('ip-tasks').textContent = d.tasks !== undefined ? d.tasks : '—';
-  document.getElementById('ip-update').textContent = 'Gerade eben';
-  document.getElementById('info-panel').classList.add('open');
-}
-
-function closePanel() {
-  document.getElementById('info-panel').classList.remove('open');
-}
-
-ALL_NODES.forEach(d => {
-  const r = nodeRadius(d);
-  const isHub = d.type === 'hub' || d.type === 'trading-hub';
-
-  const grp = nodesLayer.append('g')
-    .attr('class','node-group')
-    .attr('data-id', d.id)
-    .attr('transform', `translate(${d.x},${d.y})`)
-    .on('mouseover', function(event) { showTooltip(event, d); })
-    .on('mousemove', moveTooltip)
-    .on('mouseout', hideTooltip)
-    .on('click', function(event) {
-      event.stopPropagation();
-      openPanel(d);
-    });
-
-  // Glow backdrop
-  if(isHub) {
-    grp.append('circle')
-      .attr('r', r + 22)
-      .attr('fill', d.color)
-      .attr('opacity', 0.06);
-  }
-
-  // Outer pulse ring (hub only)
-  if(isHub) {
-    grp.append('circle')
-      .attr('class','hub-pulse')
-      .attr('r', r + 8)
-      .attr('fill','none')
-      .attr('stroke', d.color)
-      .attr('stroke-width', 1)
-      .attr('opacity', 0.3);
-  }
-
-  // Card background
-  const w = r * 2.9;
-  const h = r * 1.8;
-  grp.append('rect')
-    .attr('x', -w/2).attr('y', -h/2)
-    .attr('width', w).attr('height', h)
-    .attr('rx', isHub ? 16 : 10)
-    .attr('fill', 'rgba(12,12,28,0.82)')
-    .attr('stroke', d.color)
-    .attr('stroke-width', isHub ? 1.5 : 1)
-    .attr('stroke-opacity', isHub ? 0.8 : 0.45)
-    .style('filter', `drop-shadow(0 0 ${isHub ? 12 : 5}px ${d.color}55)`);
-
-  // Label
-  const lines = d.label.split('\n');
-  if(lines.length === 1) {
-    grp.append('text')
-      .attr('text-anchor','middle')
-      .attr('dominant-baseline','middle')
-      .attr('fill', d.color)
-      .attr('font-size', isHub ? 13 : (r > 26 ? 11 : 9.5))
-      .attr('font-weight', isHub ? 800 : 600)
-      .attr('letter-spacing', '0.04em')
-      .text(d.label);
-  } else {
-    lines.forEach((line, li) => {
-      grp.append('text')
-        .attr('text-anchor','middle')
-        .attr('y', (li - (lines.length-1)/2) * (isHub ? 15 : 12))
-        .attr('fill', d.color)
-        .attr('font-size', isHub ? 12 : 10)
-        .attr('font-weight', isHub ? 800 : 600)
-        .attr('letter-spacing','0.04em')
-        .text(line);
-    });
-  }
-
-  // Status dot
-  const dotColor = STATUS_COLORS[d.status];
-  const dotX = w/2 - 8;
-  const dotY = -h/2 + 8;
-  grp.append('circle')
-    .attr('cx', dotX).attr('cy', dotY)
-    .attr('r', 4.5)
-    .attr('fill', dotColor)
-    .attr('stroke', '#080810')
-    .attr('stroke-width', 1.5)
-    .style('filter', `drop-shadow(0 0 4px ${dotColor})`);
-
-  // Animated ring on hub
-  if(isHub) {
-    const spinRing = grp.append('circle')
-      .attr('r', r + 18)
-      .attr('fill','none')
-      .attr('stroke', d.color)
-      .attr('stroke-width', 0.8)
-      .attr('stroke-dasharray','12 20')
-      .attr('opacity', 0.2);
-
-    // Animate spin
-    function spinStep(t) {
-      spinRing.attr('stroke-dashoffset', -t * 0.02);
-      requestAnimationFrame(spinStep);
-    }
-    requestAnimationFrame(spinStep);
-  }
+ROOMS.forEach(r=>{
+  const el = document.createElement('div');
+  el.className='room '+r.type;
+  el.style.cssText=`left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;z-index:2`;
+  el.innerHTML=`<div class="name">${r.name}</div><div class="dot idle"></div>`;
+  el.addEventListener('mouseenter', e=>{
+    tooltip.style.display='block';
+    tooltip.querySelector('.t-name').textContent=r.name.replace('\n',' ');
+    const status = el.classList.contains('active')?'🟢 Aktiv':'🟡 Bereit';
+    tooltip.querySelector('.t-status').textContent=status+' — '+r.cat;
+  });
+  el.addEventListener('mousemove', e=>{
+    tooltip.style.left=(e.clientX+14)+'px';
+    tooltip.style.top=(e.clientY-10)+'px';
+  });
+  el.addEventListener('mouseleave',()=>tooltip.style.display='none');
+  el.addEventListener('click',()=>openPanel(r));
+  world.appendChild(el);
+  roomEls[r.id]=el;
 });
 
-// ─── ACTIVE PULSE ANIMATION ──────────────────────────────────────────────────
+// Info Panel
+const panel=document.getElementById('info-panel');
+document.getElementById('close-panel').onclick=()=>panel.classList.remove('open');
+const fakeTasks=['Daten analysieren...','Report generieren...','Webhook aufrufen...','Output prüfen...','Task abgeschlossen ✓','Warte auf Input...'];
 
-const ACTIVE_NODES = ALL_NODES.filter(n => n.type !== 'hub' && n.type !== 'trading
+function openPanel(r){
+  document.getElementById('ip-name').textContent=r.name.replace('\n',' ');
+  const tag=document.getElementById('ip-tag');
+  tag.textContent=r.cat; tag.className='tag '+(r.type==='cyan'?'cyan':'gold');
+  document.getElementById('ip-desc').textContent=r.desc;
+  const t=r.tasks[Math.floor(Math.random()*r.tasks.length)];
+  document.getElementById('ip-task').textContent=t;
+  panel.classList.add('open');
+}
+
+// Live-Status Simulation
+let activeCount = 0;
+function activateRandom(){
+  const eligible = ROOMS.filter(r=>r.type!=='center'&&r.type!=='center2');
+  const r = eligible[Math.floor(Math.random()*eligible.length)];
+  const el = roomEls[r.id];
+  const dot = el.querySelector('.dot');
+  el.classList.add('active'); dot.className='dot active';
+  activeCount++;
+  document.getElementById('stat-active').textContent=activeCount;
+  setTimeout(()=>{
+    el.classList.remove('active');
+    dot.className='dot ready';
+    activeCount = Math.max(0,activeCount-1);
+    document.getElementById('stat-active').textContent=activeCount;
+  },4000);
+}
+setInterval(activateRandom, 2000);
+activateRandom(); activateRandom(); activateRandom();
+
+// Clock
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+</script>
+</body>
+</html>
