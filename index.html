@@ -3,334 +3,449 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-<title>Stef_life Agency HQ</title>
+<title>Stef_life Neural Hub</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#060612;color:#fff;font-family:system-ui,-apple-system,sans-serif;overflow:hidden;height:100vh;width:100vw}
-#hud{position:fixed;top:0;left:0;right:0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,6,18,0.9);border-bottom:1px solid rgba(212,175,55,0.3);z-index:100;backdrop-filter:blur(10px)}
-#hud h1{font-size:1rem;font-weight:700;color:#D4AF37;letter-spacing:2px}
-#hud .stats{font-size:.75rem;color:#888;display:flex;gap:16px}
-#hud .stats span{color:#D4AF37}
-#canvas-wrap{position:absolute;top:48px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab}
-#canvas-wrap:active{cursor:grabbing}
-#world{position:absolute;transform-origin:0 0}
-.room{position:absolute;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:box-shadow .3s;backdrop-filter:blur(4px);user-select:none}
-.room.gold{background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.4)}
-.room.cyan{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.4)}
-.room.green{background:rgba(0,255,120,0.06);border:1px solid rgba(0,255,120,0.4)}
-.room.center{background:rgba(212,175,55,0.12);border:2px solid rgba(212,175,55,0.8)}
-.room.center2{background:rgba(0,212,255,0.12);border:2px solid rgba(0,212,255,0.8)}
-.room.active.gold{box-shadow:0 0 20px rgba(212,175,55,0.8),0 0 40px rgba(212,175,55,0.4);border-color:#D4AF37}
-.room.active.cyan{box-shadow:0 0 20px rgba(0,212,255,0.8),0 0 40px rgba(0,212,255,0.4);border-color:#00d4ff}
-.room.active.green{box-shadow:0 0 20px rgba(0,255,120,0.8);border-color:#00ff78}
-.room .name{font-size:.62rem;font-weight:600;text-align:center;padding:0 6px;line-height:1.2}
-.room.gold .name{color:#D4AF37}
-.room.cyan .name{color:#00d4ff}
-.room.green .name{color:#00ff78}
-.room.center .name{color:#D4AF37;font-size:.85rem;font-weight:800}
-.room.center2 .name{color:#00d4ff;font-size:.85rem;font-weight:800}
-.dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
-.dot.active{background:#00ff78;box-shadow:0 0 6px #00ff78;animation:pulse 1s infinite}
-.dot.ready{background:#D4AF37}
-.dot.idle{background:#444}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.7}}
-#tooltip{position:fixed;pointer-events:none;background:rgba(10,10,30,0.95);border:1px solid rgba(212,175,55,0.5);border-radius:8px;padding:10px 14px;font-size:.8rem;z-index:200;display:none;backdrop-filter:blur(10px)}
-#tooltip .t-name{font-weight:700;color:#D4AF37;margin-bottom:4px}
-#tooltip .t-status{color:#888}
-#info-panel{position:fixed;right:0;top:48px;bottom:0;width:280px;background:rgba(10,10,30,0.97);border-left:1px solid rgba(212,175,55,0.3);padding:20px;z-index:150;transform:translateX(100%);transition:transform .3s;backdrop-filter:blur(20px)}
-#info-panel.open{transform:translateX(0)}
-#info-panel h2{color:#D4AF37;font-size:1rem;margin-bottom:8px}
-#info-panel .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;margin-bottom:12px}
-#info-panel .tag.gold{background:rgba(212,175,55,0.2);color:#D4AF37;border:1px solid rgba(212,175,55,0.4)}
-#info-panel .tag.cyan{background:rgba(0,212,255,0.2);color:#00d4ff;border:1px solid rgba(0,212,255,0.4)}
-#info-panel p{font-size:.8rem;color:#aaa;line-height:1.6;margin-bottom:12px}
-#info-panel .task{background:rgba(255,255,255,0.04);border-radius:6px;padding:10px;font-size:.75rem;color:#ccc}
-#info-panel .task-label{color:#888;font-size:.65rem;margin-bottom:4px}
-#close-panel{position:absolute;top:16px;right:16px;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer}
-#live-bar{position:fixed;bottom:0;left:0;right:0;height:32px;background:rgba(6,6,18,0.9);border-top:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;padding:0 16px;gap:8px;z-index:100;overflow:hidden}
-#live-bar .lb-label{font-size:.65rem;color:#D4AF37;font-weight:700;white-space:nowrap}
-#live-ticker{font-size:.65rem;color:#888;white-space:nowrap;animation:ticker 30s linear infinite}
-@keyframes ticker{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
-svg#lines{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
+body{background:#0a0800;overflow:hidden;width:100vw;height:100vh;font-family:system-ui,-apple-system,sans-serif}
+canvas{position:absolute;top:0;left:0}
+#ui{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+#top{position:absolute;top:0;left:0;right:0;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+#top h1{color:#D4AF37;font-size:.85rem;letter-spacing:3px;font-weight:300;opacity:.8}
+#clock{color:#D4AF37;font-size:.8rem;opacity:.6}
+#tooltip{position:absolute;pointer-events:none;display:none;background:rgba(10,8,0,0.95);border:1px solid rgba(212,175,55,0.4);border-radius:8px;padding:12px 16px;min-width:180px}
+#tooltip h3{color:#D4AF37;font-size:.85rem;margin-bottom:4px}
+#tooltip p{color:#888;font-size:.72rem;line-height:1.5}
+#tooltip .status{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.7rem}
+#tooltip .dot{width:7px;height:7px;border-radius:50%}
+#info{position:absolute;right:0;top:0;bottom:0;width:260px;background:rgba(10,8,0,0.97);border-left:1px solid rgba(212,175,55,0.2);padding:24px 20px;transform:translateX(100%);transition:transform .3s;pointer-events:all}
+#info.open{transform:translateX(0)}
+#info h2{color:#D4AF37;font-size:1rem;margin-bottom:6px}
+#info .sub{color:#666;font-size:.7rem;letter-spacing:2px;margin-bottom:16px}
+#info p{color:#999;font-size:.78rem;line-height:1.6;margin-bottom:14px}
+#info .agents{display:flex;flex-direction:column;gap:6px}
+#info .agent-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.15);border-radius:6px;font-size:.72rem;color:#ccc}
+#info .agent-row .d{width:6px;height:6px;border-radius:50%;background:#333}
+#info .agent-row.active .d{background:#D4AF37;box-shadow:0 0 6px #D4AF37}
+#close{position:absolute;top:16px;right:16px;background:none;border:none;color:#555;font-size:1rem;cursor:pointer}
+#bottom{position:absolute;bottom:0;left:0;right:0;padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+#bottom .live{display:flex;align-items:center;gap:6px;font-size:.65rem;color:#D4AF37;opacity:.7}
+#bottom .live .pulse{width:6px;height:6px;border-radius:50%;background:#D4AF37;animation:p 1.5s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.2}}
+#active-count{color:#D4AF37;font-size:.65rem;opacity:.6}
 </style>
 </head>
 <body>
-<div id="hud">
-  <h1>⚡ STEF_LIFE AGENCY HQ</h1>
-  <div class="stats">
-    <div>Agents aktiv: <span id="stat-active">0</span></div>
-    <div>Teams: <span>30</span></div>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="top">
+    <h1>STEF_LIFE · NEURAL HUB</h1>
     <div id="clock"></div>
   </div>
-</div>
-<div id="canvas-wrap">
-  <div id="world">
-    <svg id="lines"></svg>
+  <div id="tooltip">
+    <h3 id="tt-name"></h3>
+    <p id="tt-desc"></p>
+    <div class="status"><div class="dot" id="tt-dot"></div><span id="tt-status"></span></div>
   </div>
-</div>
-<div id="tooltip"><div class="t-name"></div><div class="t-status"></div></div>
-<div id="info-panel">
-  <button id="close-panel">✕</button>
-  <h2 id="ip-name">—</h2>
-  <span id="ip-tag" class="tag gold">Stef_life Agentur</span>
-  <p id="ip-desc">—</p>
-  <div class="task"><div class="task-label">AKTUELLER TASK</div><div id="ip-task">—</div></div>
-</div>
-<div id="live-bar">
-  <div class="lb-label">● LIVE</div>
-  <div id="live-ticker">Stef_life Agency HQ — Alle Systeme aktiv — Trading Zentrale online — Nova koordiniert 30 Teams — Automation läuft — Content Pipeline aktiv</div>
+  <div id="info">
+    <button id="close">✕</button>
+    <h2 id="i-name"></h2>
+    <div class="sub" id="i-cat"></div>
+    <p id="i-desc"></p>
+    <div class="agents" id="i-agents"></div>
+  </div>
+  <div id="bottom">
+    <div class="live"><div class="pulse"></div>LIVE</div>
+    <div id="active-count"></div>
+  </div>
 </div>
 
 <script>
-const ROOMS = [
-  // Zentrum Stef_life
-  {id:'nova',name:'Nova + Nora\nHub',type:'center',x:380,y:220,w:130,h:80,cat:'Stef_life',desc:'Zentrale KI-Koordination. Nova empfängt alle Aufgaben, Nora leitet die Agentur.',tasks:['Anfragen routen','Teams koordinieren','CEO Briefing']},
-  // Ring 1 — Content & Media
-  {id:'content',name:'Content',type:'gold',x:160,y:80,w:90,h:55,cat:'Stef_life',desc:'Video-Ideen, Themen, Content-Plan & Kalender.',tasks:['Content-Kalender erstellen','Video-Ideen generieren','Posting-Plan']},
-  {id:'copy',name:'Copywriting',type:'gold',x:260,y:50,w:90,h:55,cat:'Stef_life',desc:'Titel, Beschreibungen, Hooks, Sales-Texte, Captions.',tasks:['YouTube Titel optimieren','Hook schreiben','Caption erstellen']},
-  {id:'thumb',name:'Thumbnail',type:'gold',x:370,y:40,w:90,h:55,cat:'Stef_life',desc:'Thumbnail-Konzepte, Design-Briefs, Cover-Gestaltung.',tasks:['Thumbnail-Konzept entwickeln','Design-Brief erstellen']},
-  {id:'shorts',name:'Shorts',type:'gold',x:470,y:50,w:90,h:55,cat:'Stef_life',desc:'Kurzvideos, Clips, Reels aus bestehenden Videos.',tasks:['Shorts schneiden','Clip auswählen']},
-  {id:'seo',name:'SEO',type:'gold',x:560,y:80,w:90,h:55,cat:'Stef_life',desc:'Keywords, Tags, Ranking-Optimierung.',tasks:['Keyword-Recherche','Tags optimieren']},
-  {id:'youtube',name:'YouTube',type:'gold',x:600,y:170,w:90,h:55,cat:'Stef_life',desc:'YouTube Analytics, Views, Wachstum, Statistiken.',tasks:['Analytics auswerten','Wachstum analysieren']},
-  // Ring 2 — Marketing
-  {id:'marketing',name:'Marketing',type:'gold',x:560,y:280,w:90,h:55,cat:'Stef_life',desc:'Funnel, Affiliate, BitUnix, Verkauf.',tasks:['Funnel optimieren','Affiliate tracken']},
-  {id:'ads',name:'Ads',type:'gold',x:600,y:360,w:90,h:55,cat:'Stef_life',desc:'Werbung, Instagram-Anzeigen, Kampagnen.',tasks:['Ad-Kampagne erstellen','Budget optimieren']},
-  {id:'pr',name:'PR',type:'gold',x:540,y:430,w:90,h:55,cat:'Stef_life',desc:'Podcast, Kooperationen, Sponsoring.',tasks:['Kooperation anfragen','PR-Text erstellen']},
-  {id:'email',name:'Email',type:'gold',x:450,y:460,w:90,h:55,cat:'Stef_life',desc:'Newsletter, Sequenzen, Listen-Management.',tasks:['Newsletter erstellen','Sequenz aufbauen']},
-  {id:'community',name:'Community',type:'gold',x:350,y:470,w:90,h:55,cat:'Stef_life',desc:'Discord, Community-Management, Telegram.',tasks:['Community moderieren','Engagement steigern']},
-  {id:'discord',name:'Discord',type:'gold',x:250,y:460,w:90,h:55,cat:'Stef_life',desc:'Discord-Tickets, Server-Management.',tasks:['Tickets bearbeiten','Channels verwalten']},
-  // Ring 3 — Produkt & Tech
-  {id:'produkt',name:'Produkt',type:'gold',x:160,y:410,w:90,h:55,cat:'Stef_life',desc:'Neue Kurse, Mentoring, Produkt-Entwicklung.',tasks:['Kurs-Konzept erstellen','Preise kalkulieren']},
-  {id:'webdesign',name:'Webdesign',type:'gold',x:90,y:340,w:90,h:55,cat:'Stef_life',desc:'Website, Landing Pages, Funnel-Design.',tasks:['Landing Page bauen','Funnel designen']},
-  {id:'branding',name:'Branding',type:'gold',x:70,y:260,w:90,h:55,cat:'Stef_life',desc:'Logo, Farben, visuelle Identität.',tasks:['Brand Guide erstellen','Logo anpassen']},
-  {id:'automation',name:'Automation',type:'gold',x:90,y:170,w:90,h:55,cat:'Stef_life',desc:'n8n Workflows, Prozess-Automatisierung.',tasks:['Workflow bauen','Prozess automatisieren']},
-  {id:'it',name:'IT',type:'gold',x:130,y:100,w:90,h:55,cat:'Stef_life',desc:'Dashboards, Webhooks, Infrastruktur.',tasks:['Dashboard deployen','Webhook einrichten']},
-  {id:'library',name:'Library',type:'gold',x:210,y:420,w:90,h:55,cat:'Stef_life',desc:'Bücher, PDFs, Wissen archivieren.',tasks:['PDF archivieren','Wissen strukturieren']},
-  {id:'planning',name:'Planning',type:'gold',x:320,y:100,w:90,h:55,cat:'Stef_life',desc:'Jahresplan, Strategie, OKRs, Roadmap.',tasks:['Q4 Roadmap planen','OKRs definieren']},
-  {id:'data',name:'Data',type:'gold',x:490,y:120,w:90,h:55,cat:'Stef_life',desc:'KPIs, Dashboards, Metriken.',tasks:['KPIs auswerten','Report erstellen']},
-  {id:'analyst',name:'Analysten',type:'gold',x:200,y:160,w:90,h:55,cat:'Stef_life',desc:'Deep-Dives, Marktanalysen, Reports.',tasks:['Markt analysieren','Report schreiben']},
-  // Trading Zentrale — Zentrum
-  {id:'trading-hub',name:'Trading\nZentrale',type:'center2',x:880,y:220,w:120,h:75,cat:'Trading',desc:'Zentrale Trading-Intelligenz. Koordiniert alle 7 Trading-Teams.',tasks:['Bias berechnen','Markt überwachen']},
-  // Trading Teams
-  {id:'makro',name:'Makro',type:'cyan',x:820,y:80,w:90,h:55,cat:'Trading',desc:'Fed, EZB, DXY, Makro-Wirtschaft.',tasks:['DXY analysieren','Fed-Erwartungen prüfen']},
-  {id:'onchain',name:'On-Chain',type:'cyan',x:940,y:60,w:90,h:55,cat:'Trading',desc:'SOPR, MVRV, Exchange Flows.',tasks:['SOPR auswerten','Exchange Flows checken']},
-  {id:'liq',name:'Liquidations',type:'cyan',x:1050,y:110,w:90,h:55,cat:'Trading',desc:'OI, Funding Rate, Coinglass-Daten.',tasks:['OI überwachen','Funding Rate checken']},
-  {id:'cot',name:'COT',type:'cyan',x:1080,y:220,w:90,h:55,cat:'Trading',desc:'CFTC, Net Positions, COT-Index.',tasks:['COT-Report auswerten','Net Positions berechnen']},
-  {id:'news',name:'News',type:'cyan',x:1050,y:330,w:90,h:55,cat:'Trading',desc:'Breaking News, Events, Nachrichten.',tasks:['News überwachen','Events tracken']},
-  {id:'technical',name:'Technical',type:'cyan',x:940,y:390,w:90,h:55,cat:'Trading',desc:'SMC, Order Blocks, FVG, Struktur.',tasks:['Chart analysieren','SMC-Struktur prüfen']},
-  {id:'bias',name:'Bias Report',type:'cyan',x:820,y:380,w:90,h:55,cat:'Trading',desc:'Tages-Bias, Reports, Zusammenfassungen.',tasks:['Bias berechnen','Daily Report erstellen']},
-  // QA
-  {id:'qa',name:'QA',type:'gold',x:580,y:480,w:80,h:50,cat:'QA',desc:'4-Augen-Prinzip. Prüft alle Outputs vor Versand.',tasks:['Output prüfen','QA-Check durchführen']}
+const STATUS_API = 'https://n8n-20bz.srv1478695.hstgr.cloud/webhook/agency-status';
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy, scale;
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W/2; cy = H/2;
+  scale = Math.min(W,H) / 900;
+  drawAll();
+}
+window.addEventListener('resize', resize);
+
+// Nodes definition
+const NODES = [
+  // Zentrum
+  {id:'nova', label:'Nova', sub:'NORA HUB', ring:0, angle:0, cat:'center', desc:'Zentrale KI. Empfängt alle Befehle von Stefan via Telegram und koordiniert alle 30 Teams.', subagents:['Nova (Assistentin)','Nora (CEO)','Dispatcher']},
+
+  // Ring 1 — 6 Haupt-Abteilungen
+  {id:'content-hub', label:'Content', sub:'MEDIA', ring:1, angle:0, cat:'stef', desc:'Content, Copywriting, Thumbnail, Shorts, SEO, YouTube.', subagents:['Content Team','Copywriting','Thumbnail','Shorts','SEO','YouTube']},
+  {id:'marketing-hub', label:'Marketing', sub:'GROWTH', ring:1, angle:60, cat:'stef', desc:'Marketing, Ads, PR, Email, Community, Discord.', subagents:['Marketing','Ads','PR','Email','Community','Discord']},
+  {id:'produkt-hub', label:'Produkt', sub:'BUILD', ring:1, angle:120, cat:'stef', desc:'Produkt, Webdesign, Branding, Automation, IT, Library.', subagents:['Produkt','Webdesign','Branding','Automation','IT','Library']},
+  {id:'trading-hub', label:'Trading', sub:'ZENTRALE', ring:1, angle:180, cat:'trading', desc:'Makro, On-Chain, Liquidations, COT, News, Technical, Bias Report.', subagents:['Makro','On-Chain','Liquidations','COT','News','Technical','Bias Report']},
+  {id:'strategy-hub', label:'Strategie', sub:'PLAN', ring:1, angle:240, cat:'stef', desc:'Planning, Data, Analysten.', subagents:['Planning','Data','Analysten']},
+  {id:'qa-hub', label:'QA', sub:'QUALITY', ring:1, angle:300, cat:'stef', desc:'4-Augen-Prinzip. Prüft alle Outputs vor Versand.', subagents:['QA Agent']},
+
+  // Ring 2 — Sub-Teams
+  {id:'content',    label:'Content',    sub:'', ring:2, angle:350, cat:'stef', desc:'Video-Ideen, Content-Plan, Kalender.', subagents:[]},
+  {id:'copy',       label:'Copy',       sub:'', ring:2, angle:10,  cat:'stef', desc:'Titel, Hooks, Sales-Texte.', subagents:[]},
+  {id:'thumb',      label:'Thumb',      sub:'', ring:2, angle:25,  cat:'stef', desc:'Thumbnail-Konzepte.', subagents:[]},
+  {id:'shorts',     label:'Shorts',     sub:'', ring:2, angle:40,  cat:'stef', desc:'Kurzvideos & Clips.', subagents:[]},
+  {id:'seo',        label:'SEO',        sub:'', ring:2, angle:55,  cat:'stef', desc:'Keywords & Ranking.', subagents:[]},
+  {id:'yt',         label:'YouTube',    sub:'', ring:2, angle:70,  cat:'stef', desc:'Analytics & Wachstum.', subagents:[]},
+  {id:'mktg',       label:'Marketing',  sub:'', ring:2, angle:50,  cat:'stef', desc:'Funnel & Affiliate.', subagents:[]},
+  {id:'ads',        label:'Ads',        sub:'', ring:2, angle:65,  cat:'stef', desc:'Werbeanzeigen.', subagents:[]},
+  {id:'pr',         label:'PR',         sub:'', ring:2, angle:80,  cat:'stef', desc:'Kooperationen & Sponsoring.', subagents:[]},
+  {id:'email',      label:'Email',      sub:'', ring:2, angle:95,  cat:'stef', desc:'Newsletter & Sequenzen.', subagents:[]},
+  {id:'comm',       label:'Community',  sub:'', ring:2, angle:110, cat:'stef', desc:'Discord & Telegram.', subagents:[]},
+  {id:'disc',       label:'Discord',    sub:'', ring:2, angle:125, cat:'stef', desc:'Tickets & Server.', subagents:[]},
+  {id:'prod',       label:'Produkt',    sub:'', ring:2, angle:110, cat:'stef', desc:'Kurse & Mentoring.', subagents:[]},
+  {id:'web',        label:'Webdesign',  sub:'', ring:2, angle:125, cat:'stef', desc:'Landing Pages.', subagents:[]},
+  {id:'brand',      label:'Branding',   sub:'', ring:2, angle:140, cat:'stef', desc:'Logo & Identität.', subagents:[]},
+  {id:'auto',       label:'Automation', sub:'', ring:2, angle:155, cat:'stef', desc:'n8n Workflows.', subagents:[]},
+  {id:'it',         label:'IT',         sub:'', ring:2, angle:170, cat:'stef', desc:'Dashboards & Webhooks.', subagents:[]},
+  {id:'lib',        label:'Library',    sub:'', ring:2, angle:185, cat:'stef', desc:'Wissen & PDFs.', subagents:[]},
+  {id:'makro',      label:'Makro',      sub:'', ring:2, angle:160, cat:'trading', desc:'Fed, EZB, DXY.', subagents:[]},
+  {id:'onchain',    label:'On-Chain',   sub:'', ring:2, angle:175, cat:'trading', desc:'SOPR, MVRV, Flows.', subagents:[]},
+  {id:'liq',        label:'Liquidation',sub:'', ring:2, angle:190, cat:'trading', desc:'OI & Funding Rate.', subagents:[]},
+  {id:'cot',        label:'COT',        sub:'', ring:2, angle:205, cat:'trading', desc:'CFTC Net Positions.', subagents:[]},
+  {id:'news',       label:'News',       sub:'', ring:2, angle:220, cat:'trading', desc:'Breaking News.', subagents:[]},
+  {id:'tech',       label:'Technical',  sub:'', ring:2, angle:235, cat:'trading', desc:'SMC & Struktur.', subagents:[]},
+  {id:'bias',       label:'Bias Report',sub:'', ring:2, angle:250, cat:'trading', desc:'Tages-Bias.', subagents:[]},
+  {id:'plan',       label:'Planning',   sub:'', ring:2, angle:230, cat:'stef', desc:'Strategie & OKRs.', subagents:[]},
+  {id:'data',       label:'Data',       sub:'', ring:2, angle:245, cat:'stef', desc:'KPIs & Metriken.', subagents:[]},
+  {id:'analyst',    label:'Analysten',  sub:'', ring:2, angle:260, cat:'stef', desc:'Deep-Dives.', subagents:[]},
 ];
 
-const world = document.getElementById('world');
-const svg = document.getElementById('lines');
-const wrap = document.getElementById('canvas-wrap');
+// Radien
+const R = {0: 0, 1: 220, 2: 390};
 
-// World-Größe
-const W = 1220, H = 600;
-world.style.width = W+'px';
-world.style.height = H+'px';
-svg.setAttribute('width', W);
-svg.setAttribute('height', H);
-
-// Zoom/Pan State
-let scale = 1, tx = 0, ty = 0;
-let dragging = false, lastX = 0, lastY = 0;
-
-function applyTransform(){
-  world.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`;
+// Positionen berechnen
+function getPos(node){
+  const r = R[node.ring] * scale;
+  const a = (node.angle - 90) * Math.PI / 180;
+  return {x: cx + Math.cos(a)*r, y: cy + Math.sin(a)*r};
 }
 
-// Initial: zentriert im Viewport
-function initView(){
-  const vw = wrap.clientWidth, vh = wrap.clientHeight - 32;
-  scale = Math.min(vw/W, vh/H) * 0.9;
-  tx = (vw - W*scale)/2;
-  ty = (vh - H*scale)/2;
-  applyTransform();
+// Aktive Nodes (von API)
+let activeNodes = new Set();
+let hoveredNode = null;
+
+// Farben
+function nodeColor(node, active){
+  if(node.ring === 0) return active ? '#FFD700' : '#D4AF37';
+  if(node.cat === 'trading') return active ? '#00ffff' : '#00d4ff';
+  return active ? '#FFD700' : '#D4AF37';
 }
-initView();
-window.addEventListener('resize', initView);
 
-// Scroll-Zoom
-wrap.addEventListener('wheel', e => {
-  e.preventDefault();
-  const rect = wrap.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  const delta = e.deltaY > 0 ? 0.9 : 1.1;
-  const newScale = Math.min(4, Math.max(0.3, scale * delta));
-  tx = mx - (mx - tx) * (newScale/scale);
-  ty = my - (my - ty) * (newScale/scale);
-  scale = newScale;
-  applyTransform();
-}, {passive:false});
-
-// Drag
-wrap.addEventListener('mousedown', e => { dragging=true; lastX=e.clientX; lastY=e.clientY; });
-window.addEventListener('mousemove', e => {
-  if(!dragging) return;
-  tx += e.clientX - lastX; ty += e.clientY - lastY;
-  lastX=e.clientX; lastY=e.clientY;
-  applyTransform();
-});
-window.addEventListener('mouseup', () => dragging=false);
-
-// Touch
-let touches = {};
-wrap.addEventListener('touchstart', e => {
-  [...e.changedTouches].forEach(t => touches[t.identifier]={x:t.clientX,y:t.clientY});
-});
-wrap.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if(e.touches.length === 1){
-    const t = e.touches[0];
-    const prev = touches[t.identifier];
-    if(prev){ tx += t.clientX-prev.x; ty += t.clientY-prev.y; applyTransform(); }
-    touches[t.identifier]={x:t.clientX,y:t.clientY};
-  } else if(e.touches.length === 2){
-    const [a,b] = [...e.touches];
-    const pa = touches[a.identifier], pb = touches[b.identifier];
-    if(pa&&pb){
-      const distPrev = Math.hypot(pa.x-pb.x,pa.y-pb.y);
-      const distNow = Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-      const delta = distNow/distPrev;
-      const cx = (a.clientX+b.clientX)/2, cy = (a.clientY+b.clientY)/2;
-      const rect = wrap.getBoundingClientRect();
-      const mx=cx-rect.left, my=cy-rect.top;
-      const newScale = Math.min(4,Math.max(0.3,scale*delta));
-      tx = mx-(mx-tx)*(newScale/scale); ty = my-(my-ty)*(newScale/scale);
-      scale=newScale; applyTransform();
-    }
-    touches[a.identifier]={x:a.clientX,y:a.clientY};
-    touches[b.identifier]={x:b.clientX,y:b.clientY};
+// Netz im Zentrum zeichnen (wie WSS Hub)
+function drawNet(){
+  const netPoints = [];
+  const count = 80;
+  const seed = Date.now() * 0.0001;
+  for(let i=0;i<count;i++){
+    const a = (i/count)*Math.PI*2 + seed;
+    const r2 = (R[1]*0.6 + Math.sin(i*2.3+seed)*R[1]*0.25) * scale;
+    netPoints.push({x: cx+Math.cos(a)*r2, y: cy+Math.sin(a)*r2});
   }
-},{passive:false});
-wrap.addEventListener('touchend', e => {
-  [...e.changedTouches].forEach(t => delete touches[t.identifier]);
-});
-
-// SVG Lines
-const centerNodes = ROOMS.filter(r => r.type==='center'||r.type==='center2');
-ROOMS.forEach(r => {
-  if(r.type==='center'||r.type==='center2') return;
-  const hub = r.cat==='Trading' ? centerNodes.find(c=>c.id==='trading-hub') : centerNodes.find(c=>c.id==='nova');
-  if(!hub) return;
-  const x1=hub.x+hub.w/2, y1=hub.y+hub.h/2, x2=r.x+r.w/2, y2=r.y+r.h/2;
-  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-  line.setAttribute('x1',x1); line.setAttribute('y1',y1);
-  line.setAttribute('x2',x2); line.setAttribute('y2',y2);
-  const col = r.type==='cyan'?'rgba(0,212,255,0.15)':r.type==='green'?'rgba(0,255,120,0.2)':'rgba(212,175,55,0.15)';
-  line.setAttribute('stroke',col); line.setAttribute('stroke-width','1');
-  svg.appendChild(line);
-});
-
-// Verbindung Nova ↔ Trading Hub
-const novaHub=ROOMS.find(r=>r.id==='nova'), tradHub=ROOMS.find(r=>r.id==='trading-hub');
-const connLine = document.createElementNS('http://www.w3.org/2000/svg','line');
-connLine.setAttribute('x1',novaHub.x+novaHub.w); connLine.setAttribute('y1',novaHub.y+novaHub.h/2);
-connLine.setAttribute('x2',tradHub.x); connLine.setAttribute('y2',tradHub.y+tradHub.h/2);
-connLine.setAttribute('stroke','rgba(212,175,55,0.3)'); connLine.setAttribute('stroke-width','1.5');
-connLine.setAttribute('stroke-dasharray','4,4');
-svg.appendChild(connLine);
-
-// Animierte Partikel auf Lines
-const particles = [];
-function addParticle(x1,y1,x2,y2,col){
-  particles.push({x1,y1,x2,y2,col,t:Math.random(),speed:0.003+Math.random()*0.004});
+  ctx.strokeStyle = 'rgba(212,175,55,0.06)';
+  ctx.lineWidth = 0.5;
+  for(let i=0;i<netPoints.length;i++){
+    for(let j=i+1;j<netPoints.length;j++){
+      const d = Math.hypot(netPoints[i].x-netPoints[j].x, netPoints[i].y-netPoints[j].y);
+      if(d < 80*scale){
+        ctx.beginPath();
+        ctx.moveTo(netPoints[i].x, netPoints[i].y);
+        ctx.lineTo(netPoints[j].x, netPoints[j].y);
+        ctx.stroke();
+      }
+    }
+  }
 }
-ROOMS.forEach(r=>{
-  if(r.type==='center'||r.type==='center2') return;
-  const hub = r.cat==='Trading'?tradHub:novaHub;
-  const col = r.type==='cyan'?'rgba(0,212,255,0.8)':r.type==='green'?'rgba(0,255,120,0.8)':'rgba(212,175,55,0.8)';
-  addParticle(hub.x+hub.w/2,hub.y+hub.h/2,r.x+r.w/2,r.y+r.h/2,col);
-});
 
-// Canvas für Partikel
-const pCanvas = document.createElement('canvas');
-pCanvas.style.cssText='position:absolute;top:0;left:0;pointer-events:none;z-index:1';
-pCanvas.width=W; pCanvas.height=H;
-world.appendChild(pCanvas);
-const ctx = pCanvas.getContext('2d');
+// Orbit-Ringe
+function drawOrbits(){
+  [1,2].forEach(r => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, R[r]*scale, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(212,175,55,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+}
 
-function animParticles(){
-  ctx.clearRect(0,0,W,H);
+// Verbindungslinien
+function drawLines(){
+  NODES.forEach(node => {
+    if(node.ring === 0) return;
+    const pos = getPos(node);
+    let parentId = node.ring === 1 ? 'nova' : null;
+    if(node.ring === 2){
+      // Verbinde zu Hub basierend auf cat + angle-Nähe
+      const hubs = NODES.filter(n => n.ring === 1);
+      let closest = null, minDiff = 999;
+      hubs.forEach(h => {
+        const diff = Math.abs(((node.angle - h.angle + 540)%360) - 180);
+        if(diff < minDiff){ minDiff=diff; closest=h; }
+      });
+      parentId = closest ? closest.id : 'nova';
+    }
+    const parent = NODES.find(n => n.id === parentId);
+    if(!parent) return;
+    const ppos = getPos(parent);
+    const active = activeNodes.has(node.id);
+    const pactive = activeNodes.has(parentId);
+    const alpha = (active || pactive) ? 0.5 : 0.12;
+    const col = node.cat==='trading' ? `rgba(0,212,255,${alpha})` : `rgba(212,175,55,${alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(ppos.x, ppos.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = col;
+    ctx.lineWidth = (active||pactive) ? 1.5 : 0.7;
+    ctx.stroke();
+  });
+}
+
+// Partikel auf aktiven Linien
+const particles = [];
+let pTick = 0;
+
+function updateParticles(){
+  pTick++;
+  // Neue Partikel für aktive Nodes
+  if(pTick % 8 === 0){
+    activeNodes.forEach(id => {
+      const node = NODES.find(n => n.id === id);
+      if(!node || node.ring===0) return;
+      const pos = getPos(node);
+      const hubId = node.ring===1 ? 'nova' : (() => {
+        const hubs = NODES.filter(n=>n.ring===1);
+        let cl=null,md=999;
+        hubs.forEach(h=>{const d=Math.abs(((node.angle-h.angle+540)%360)-180);if(d<md){md=d;cl=h;}});
+        return cl?cl.id:'nova';
+      })();
+      const hub = NODES.find(n=>n.id===hubId);
+      if(!hub) return;
+      const hpos = getPos(hub);
+      const col = node.cat==='trading'?'rgba(0,212,255,0.9)':'rgba(212,175,55,0.9)';
+      particles.push({x:hpos.x,y:hpos.y,tx:pos.x,ty:pos.y,t:0,speed:0.025,col});
+    });
+  }
+  // Partikel bewegen
+  for(let i=particles.length-1;i>=0;i--){
+    particles[i].t+=particles[i].speed;
+    if(particles[i].t>=1) particles.splice(i,1);
+  }
+}
+
+function drawParticles(){
   particles.forEach(p=>{
-    p.t=(p.t+p.speed)%1;
-    const x=p.x1+(p.x2-p.x1)*p.t, y=p.y1+(p.y2-p.y1)*p.t;
-    ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2);
+    const x=p.x+(p.tx-p.x)*p.t, y=p.y+(p.ty-p.y)*p.t;
+    ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2);
     ctx.fillStyle=p.col; ctx.fill();
   });
-  requestAnimationFrame(animParticles);
 }
-animParticles();
 
-// Rooms erstellen
-const roomEls = {};
-const tooltip = document.getElementById('tooltip');
+// Nodes zeichnen
+function drawNodes(){
+  NODES.forEach(node => {
+    const pos = getPos(node);
+    const active = activeNodes.has(node.id);
+    const hovered = hoveredNode && hoveredNode.id === node.id;
+    const col = nodeColor(node, active);
+    const isCenter = node.ring === 0;
 
-ROOMS.forEach(r=>{
-  const el = document.createElement('div');
-  el.className='room '+r.type;
-  el.style.cssText=`left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;z-index:2`;
-  el.innerHTML=`<div class="name">${r.name}</div><div class="dot idle"></div>`;
-  el.addEventListener('mouseenter', e=>{
-    tooltip.style.display='block';
-    tooltip.querySelector('.t-name').textContent=r.name.replace('\n',' ');
-    const status = el.classList.contains('active')?'🟢 Aktiv':'🟡 Bereit';
-    tooltip.querySelector('.t-status').textContent=status+' — '+r.cat;
+    // Glow bei aktiv
+    if(active || isCenter){
+      ctx.beginPath();
+      const gR = isCenter ? 45*scale : (node.ring===1?22:14)*scale;
+      const grad = ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,gR*2);
+      const gc = node.cat==='trading'?'rgba(0,212,255,':'rgba(212,175,55,';
+      grad.addColorStop(0, gc+(active?'0.3)':'0.15)'));
+      grad.addColorStop(1, gc+'0)');
+      ctx.fillStyle=grad;
+      ctx.arc(pos.x,pos.y,gR*2,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    // Kreis
+    const r = isCenter ? 38*scale : (node.ring===1?16:9)*scale;
+    ctx.beginPath(); ctx.arc(pos.x,pos.y,r,0,Math.PI*2);
+    if(isCenter){
+      const g=ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,r);
+      g.addColorStop(0,'rgba(212,175,55,0.3)');
+      g.addColorStop(1,'rgba(212,175,55,0.05)');
+      ctx.fillStyle=g;
+    } else {
+      ctx.fillStyle = active ? (node.cat==='trading'?'rgba(0,212,255,0.2)':'rgba(212,175,55,0.2)') : 'rgba(10,8,0,0.8)';
+    }
+    ctx.fill();
+    ctx.strokeStyle = col;
+    ctx.lineWidth = isCenter ? 2 : (active||hovered?1.5:0.8);
+    ctx.stroke();
+
+    // Text
+    const fontSize = isCenter ? 13*scale : (node.ring===1?10:8)*scale;
+    ctx.fillStyle = hovered||active ? '#fff' : col;
+    ctx.font = `${isCenter?'600':node.ring===1?'500':'400'} ${fontSize}px system-ui`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    if(isCenter){
+      ctx.fillText('Nova', pos.x, pos.y-6*scale);
+      ctx.font = `300 ${9*scale}px system-ui`;
+      ctx.fillStyle='rgba(212,175,55,0.6)';
+      ctx.fillText('NORA HUB', pos.x, pos.y+8*scale);
+    } else {
+      const labelY = pos.y + r + 12*scale;
+      ctx.fillText(node.label, pos.x, labelY);
+      if(node.sub && node.ring===1){
+        ctx.font=`300 ${7*scale}px system-ui`;
+        ctx.fillStyle='rgba(212,175,55,0.5)';
+        ctx.fillText(node.sub, pos.x, labelY+10*scale);
+      }
+    }
   });
-  el.addEventListener('mousemove', e=>{
-    tooltip.style.left=(e.clientX+14)+'px';
-    tooltip.style.top=(e.clientY-10)+'px';
+}
+
+// Telegram Icon oben
+function drawTelegram(){
+  const tx2 = cx, ty2 = 20*scale;
+  ctx.beginPath(); ctx.arc(tx2,ty2,10*scale,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,136,204,0.3)'; ctx.fill();
+  ctx.strokeStyle='rgba(0,136,204,0.8)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font=`${9*scale}px system-ui`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('TG',tx2,ty2);
+  // Linie zu Nova
+  const novaPos = getPos(NODES[0]);
+  ctx.beginPath(); ctx.moveTo(tx2,ty2+10*scale); ctx.lineTo(novaPos.x,novaPos.y-38*scale);
+  ctx.strokeStyle='rgba(0,136,204,0.3)'; ctx.lineWidth=0.7; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(0,136,204,0.6)'; ctx.font=`${7*scale}px system-ui`;
+  ctx.fillText('Stefan', tx2, ty2-14*scale);
+}
+
+let frame=0;
+function drawAll(){
+  ctx.clearRect(0,0,W,H);
+  // Sterne-Hintergrund
+  if(frame===0){
+    for(let i=0;i<200;i++){
+      ctx.beginPath(); ctx.arc(Math.random()*W,Math.random()*H,Math.random()*1.2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(212,175,55,${Math.random()*0.15})`; ctx.fill();
+    }
+  }
+  drawOrbits();
+  drawNet();
+  drawLines();
+  updateParticles();
+  drawParticles();
+  drawNodes();
+  drawTelegram();
+  frame++;
+  requestAnimationFrame(drawAll);
+}
+
+resize();
+
+// Sterne separat (statisch)
+const bgCanvas = document.createElement('canvas');
+bgCanvas.style.cssText='position:fixed;top:0;left:0;z-index:-1';
+bgCanvas.width=window.innerWidth; bgCanvas.height=window.innerHeight;
+document.body.appendChild(bgCanvas);
+const bgCtx=bgCanvas.getContext('2d');
+for(let i=0;i<250;i++){
+  bgCtx.beginPath(); bgCtx.arc(Math.random()*bgCanvas.width,Math.random()*bgCanvas.height,Math.random()*1.5,0,Math.PI*2);
+  bgCtx.fillStyle=`rgba(212,175,55,${Math.random()*0.12})`; bgCtx.fill();
+}
+
+// Hover
+canvas.addEventListener('mousemove', e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  let found=null;
+  NODES.forEach(node=>{
+    const pos=getPos(node);
+    const r=(node.ring===0?38:node.ring===1?16:9)*scale;
+    if(Math.hypot(mx-pos.x,my-pos.y)<r+8) found=node;
   });
-  el.addEventListener('mouseleave',()=>tooltip.style.display='none');
-  el.addEventListener('click',()=>openPanel(r));
-  world.appendChild(el);
-  roomEls[r.id]=el;
+  hoveredNode=found;
+  const tt=document.getElementById('tooltip');
+  if(found){
+    tt.style.display='block';
+    tt.style.left=(e.clientX+16)+'px';
+    tt.style.top=(e.clientY-10)+'px';
+    document.getElementById('tt-name').textContent=found.label+(found.sub?' · '+found.sub:'');
+    document.getElementById('tt-desc').textContent=found.desc||'';
+    const active=activeNodes.has(found.id);
+    const dot=document.getElementById('tt-dot');
+    dot.style.background=active?'#00ff78':'#555';
+    document.getElementById('tt-status').textContent=active?'AKTIV — ARBEITET GERADE':'BEREIT';
+    tt.style.color=active?'#00ff78':'#888';
+    canvas.style.cursor='pointer';
+  } else {
+    tt.style.display='none';
+    canvas.style.cursor='default';
+  }
 });
 
-// Info Panel
-const panel=document.getElementById('info-panel');
-document.getElementById('close-panel').onclick=()=>panel.classList.remove('open');
-const fakeTasks=['Daten analysieren...','Report generieren...','Webhook aufrufen...','Output prüfen...','Task abgeschlossen ✓','Warte auf Input...'];
+// Click
+canvas.addEventListener('click', e=>{
+  if(!hoveredNode) return;
+  const n=hoveredNode;
+  document.getElementById('i-name').textContent=n.label;
+  document.getElementById('i-cat').textContent=n.sub||n.cat.toUpperCase();
+  document.getElementById('i-desc').textContent=n.desc||'';
+  const agentsEl=document.getElementById('i-agents');
+  agentsEl.innerHTML='';
+  (n.subagents||[]).forEach(a=>{
+    const row=document.createElement('div');
+    const active=activeNodes.has(n.id);
+    row.className='agent-row'+(active?' active':'');
+    row.innerHTML=`<div class="d"></div>${a}`;
+    agentsEl.appendChild(row);
+  });
+  document.getElementById('info').classList.add('open');
+});
+document.getElementById('close').onclick=()=>document.getElementById('info').classList.remove('open');
 
-function openPanel(r){
-  document.getElementById('ip-name').textContent=r.name.replace('\n',' ');
-  const tag=document.getElementById('ip-tag');
-  tag.textContent=r.cat; tag.className='tag '+(r.type==='cyan'?'cyan':'gold');
-  document.getElementById('ip-desc').textContent=r.desc;
-  const t=r.tasks[Math.floor(Math.random()*r.tasks.length)];
-  document.getElementById('ip-task').textContent=t;
-  panel.classList.add('open');
-}
-
-// Live-Status Simulation
-let activeCount = 0;
-function activateRandom(){
-  const eligible = ROOMS.filter(r=>r.type!=='center'&&r.type!=='center2');
-  const r = eligible[Math.floor(Math.random()*eligible.length)];
-  const el = roomEls[r.id];
-  const dot = el.querySelector('.dot');
-  el.classList.add('active'); dot.className='dot active';
-  activeCount++;
-  document.getElementById('stat-active').textContent=activeCount;
-  setTimeout(()=>{
-    el.classList.remove('active');
-    dot.className='dot ready';
-    activeCount = Math.max(0,activeCount-1);
-    document.getElementById('stat-active').textContent=activeCount;
-  },4000);
-}
-setInterval(activateRandom, 2000);
-activateRandom(); activateRandom(); activateRandom();
+// Touch
+let lastTouch={};
+canvas.addEventListener('touchend', e=>{
+  const t=e.changedTouches[0];
+  const rect=canvas.getBoundingClientRect();
+  const mx=t.clientX-rect.left, my=t.clientY-rect.top;
+  NODES.forEach(node=>{
+    const pos=getPos(node);
+    const r=(node.ring===0?38:node.ring===1?16:9)*scale+10;
+    if(Math.hypot(mx-pos.x,my-pos.y)<r){
+      hoveredNode=node;
+      canvas.dispatchEvent(new MouseEvent('click'));
+    }
+  });
+});
 
 // Clock
-function updateClock(){
-  const now=new Date();
-  document.getElementById('clock').textContent=now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+setInterval(()=>{
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString('de-DE');
+},1000);
+
+// Status API pollen
+async function pollStatus(){
+  try{
+    const r=await fetch(STATUS_API);
+    const d=await r.json();
+    const prev=new Set(activeNodes);
+    activeNodes.clear();
+    (d.events||[]).forEach(e=>{
+      const node=NODES.find(n=>n.id===e.agent||n.label.toLowerCase()===e.agent.toLowerCase());
+      if(node) activeNodes.add(node.id);
+    });
+    const count=activeNodes.size;
+    document.getElementById('active-count').textContent=count>0?`${count} Agent${count>1?'s':''} aktiv`:'Alle bereit';
+  }catch(e){}
+  setTimeout(pollStatus,3000);
 }
-setInterval(updateClock,1000); updateClock();
+pollStatus();
 </script>
 </body>
 </html>
