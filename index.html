@@ -9,231 +9,166 @@
 body{background:#0a0800;overflow:hidden;width:100vw;height:100vh;font-family:system-ui,-apple-system,sans-serif}
 canvas{position:absolute;top:0;left:0}
 #ui{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
-#top{position:absolute;top:0;left:0;right:0;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
-#top h1{color:#D4AF37;font-size:.85rem;letter-spacing:3px;font-weight:300;opacity:.8}
-#clock{color:#D4AF37;font-size:.8rem;opacity:.6}
-#tooltip{position:absolute;pointer-events:none;display:none;background:rgba(10,8,0,0.95);border:1px solid rgba(212,175,55,0.4);border-radius:8px;padding:12px 16px;min-width:180px}
-#tooltip h3{color:#D4AF37;font-size:.85rem;margin-bottom:4px}
-#tooltip p{color:#888;font-size:.72rem;line-height:1.5}
-#tooltip .status{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.7rem}
-#tooltip .dot{width:7px;height:7px;border-radius:50%}
-#info{position:absolute;right:0;top:0;bottom:0;width:260px;background:rgba(10,8,0,0.97);border-left:1px solid rgba(212,175,55,0.2);padding:24px 20px;transform:translateX(100%);transition:transform .3s;pointer-events:all}
+#top{position:absolute;top:0;left:0;right:0;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+#top h1{color:#D4AF37;font-size:.8rem;letter-spacing:3px;font-weight:300;opacity:.8}
+#clock{color:#D4AF37;font-size:.78rem;opacity:.6}
+#tooltip{position:absolute;pointer-events:none;display:none;background:rgba(10,8,0,0.96);border:1px solid rgba(212,175,55,0.4);border-radius:8px;padding:11px 15px;min-width:170px;z-index:10}
+#tooltip h3{color:#D4AF37;font-size:.82rem;margin-bottom:3px}
+#tooltip p{color:#777;font-size:.7rem;line-height:1.5}
+#tooltip .st{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.68rem}
+#tooltip .sd{width:6px;height:6px;border-radius:50%}
+#info{position:absolute;right:0;top:0;bottom:0;width:250px;background:rgba(10,8,0,0.97);border-left:1px solid rgba(212,175,55,0.2);padding:22px 18px;transform:translateX(100%);transition:transform .3s;pointer-events:all;overflow-y:auto}
 #info.open{transform:translateX(0)}
-#info h2{color:#D4AF37;font-size:1rem;margin-bottom:6px}
-#info .sub{color:#666;font-size:.7rem;letter-spacing:2px;margin-bottom:16px}
-#info p{color:#999;font-size:.78rem;line-height:1.6;margin-bottom:14px}
-#info .agents{display:flex;flex-direction:column;gap:6px}
-#info .agent-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.15);border-radius:6px;font-size:.72rem;color:#ccc}
-#info .agent-row .d{width:6px;height:6px;border-radius:50%;background:#333}
-#info .agent-row.active .d{background:#D4AF37;box-shadow:0 0 6px #D4AF37}
-#close{position:absolute;top:16px;right:16px;background:none;border:none;color:#555;font-size:1rem;cursor:pointer}
-#bottom{position:absolute;bottom:0;left:0;right:0;padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
-#bottom .live{display:flex;align-items:center;gap:6px;font-size:.65rem;color:#D4AF37;opacity:.7}
-#bottom .live .pulse{width:6px;height:6px;border-radius:50%;background:#D4AF37;animation:p 1.5s infinite}
+#info h2{color:#D4AF37;font-size:.95rem;margin-bottom:4px}
+#info .sub{color:#555;font-size:.65rem;letter-spacing:2px;margin-bottom:14px}
+#info p{color:#888;font-size:.75rem;line-height:1.6;margin-bottom:12px}
+#info .agents{display:flex;flex-direction:column;gap:5px}
+#info .ar{display:flex;align-items:center;gap:8px;padding:5px 9px;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.12);border-radius:5px;font-size:.7rem;color:#bbb}
+#info .ar .d{width:5px;height:5px;border-radius:50%;background:#333;flex-shrink:0}
+#info .ar.on .d{background:#D4AF37;box-shadow:0 0 5px #D4AF37}
+#close{position:absolute;top:14px;right:14px;background:none;border:none;color:#444;font-size:1rem;cursor:pointer;pointer-events:all}
+#bottom{position:absolute;bottom:0;left:0;right:0;padding:10px 22px;display:flex;justify-content:space-between;align-items:center}
+#bottom .live{display:flex;align-items:center;gap:5px;font-size:.62rem;color:#D4AF37;opacity:.6}
+.pulse{width:5px;height:5px;border-radius:50%;background:#D4AF37;animation:p 1.5s infinite}
 @keyframes p{0%,100%{opacity:1}50%{opacity:.2}}
-#active-count{color:#D4AF37;font-size:.65rem;opacity:.6}
+#ac{color:#D4AF37;font-size:.62rem;opacity:.55}
 </style>
 </head>
 <body>
+<canvas id="bg"></canvas>
 <canvas id="c"></canvas>
 <div id="ui">
-  <div id="top">
-    <h1>STEF_LIFE · NEURAL HUB</h1>
-    <div id="clock"></div>
-  </div>
-  <div id="tooltip">
-    <h3 id="tt-name"></h3>
-    <p id="tt-desc"></p>
-    <div class="status"><div class="dot" id="tt-dot"></div><span id="tt-status"></span></div>
-  </div>
+  <div id="top"><h1>STEF_LIFE · NEURAL HUB</h1><div id="clock"></div></div>
+  <div id="tooltip"><h3 id="tt-n"></h3><p id="tt-d"></p><div class="st"><div class="sd" id="tt-dot"></div><span id="tt-s"></span></div></div>
   <div id="info">
     <button id="close">✕</button>
-    <h2 id="i-name"></h2>
-    <div class="sub" id="i-cat"></div>
-    <p id="i-desc"></p>
-    <div class="agents" id="i-agents"></div>
+    <h2 id="i-n"></h2><div class="sub" id="i-s"></div>
+    <p id="i-d"></p>
+    <div class="agents" id="i-a"></div>
   </div>
-  <div id="bottom">
-    <div class="live"><div class="pulse"></div>LIVE</div>
-    <div id="active-count"></div>
-  </div>
+  <div id="bottom"><div class="live"><div class="pulse"></div>LIVE</div><div id="ac"></div></div>
 </div>
-
 <script>
-const STATUS_API = 'https://n8n-20bz.srv1478695.hstgr.cloud/webhook/agency-status';
+const STATUS_API='https://n8n-20bz.srv1478695.hstgr.cloud/webhook/agency-status';
+const C=document.getElementById('c'), ctx=C.getContext('2d');
+const BG=document.getElementById('bg'), bgc=BG.getContext('2d');
+let W,H,scale,activeNodes=new Set(),hoveredNode=null,frame=0;
 
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-let W, H, cx, cy, scale;
+// LAYOUT: Nova links-mitte, Trading rechts
+// Nova Hub: 30% von links, Trading Hub: 72% von links
+function novaCX(){ return W*0.30; }
+function novaCY(){ return H*0.50; }
+function tradCX(){ return W*0.72; }
+function tradCY(){ return H*0.50; }
+function novaR1(){ return Math.min(W,H)*0.22; }
+function tradR1(){ return Math.min(W,H)*0.18; }
 
-function resize(){
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-  cx = W/2; cy = H/2;
-  scale = Math.min(W,H) / 900;
-  drawAll();
-}
-window.addEventListener('resize', resize);
-
-// Nodes definition
-const NODES = [
-  // Zentrum
-  {id:'nova', label:'Nova', sub:'NORA HUB', ring:0, angle:0, cat:'center', desc:'Zentrale KI. Empfängt alle Befehle von Stefan via Telegram und koordiniert alle 30 Teams.', subagents:['Nova (Assistentin)','Nora (CEO)','Dispatcher']},
-
-  // Ring 1 — 6 Haupt-Abteilungen
-  {id:'content-hub', label:'Content', sub:'MEDIA', ring:1, angle:0, cat:'stef', desc:'Content, Copywriting, Thumbnail, Shorts, SEO, YouTube.', subagents:['Content Team','Copywriting','Thumbnail','Shorts','SEO','YouTube']},
-  {id:'marketing-hub', label:'Marketing', sub:'GROWTH', ring:1, angle:60, cat:'stef', desc:'Marketing, Ads, PR, Email, Community, Discord.', subagents:['Marketing','Ads','PR','Email','Community','Discord']},
-  {id:'produkt-hub', label:'Produkt', sub:'BUILD', ring:1, angle:120, cat:'stef', desc:'Produkt, Webdesign, Branding, Automation, IT, Library.', subagents:['Produkt','Webdesign','Branding','Automation','IT','Library']},
-  {id:'trading-hub', label:'Trading', sub:'ZENTRALE', ring:1, angle:180, cat:'trading', desc:'Makro, On-Chain, Liquidations, COT, News, Technical, Bias Report.', subagents:['Makro','On-Chain','Liquidations','COT','News','Technical','Bias Report']},
-  {id:'strategy-hub', label:'Strategie', sub:'PLAN', ring:1, angle:240, cat:'stef', desc:'Planning, Data, Analysten.', subagents:['Planning','Data','Analysten']},
-  {id:'qa-hub', label:'QA', sub:'QUALITY', ring:1, angle:300, cat:'stef', desc:'4-Augen-Prinzip. Prüft alle Outputs vor Versand.', subagents:['QA Agent']},
-
-  // Ring 2 — Sub-Teams
-  {id:'content',    label:'Content',    sub:'', ring:2, angle:350, cat:'stef', desc:'Video-Ideen, Content-Plan, Kalender.', subagents:[]},
-  {id:'copy',       label:'Copy',       sub:'', ring:2, angle:10,  cat:'stef', desc:'Titel, Hooks, Sales-Texte.', subagents:[]},
-  {id:'thumb',      label:'Thumb',      sub:'', ring:2, angle:25,  cat:'stef', desc:'Thumbnail-Konzepte.', subagents:[]},
-  {id:'shorts',     label:'Shorts',     sub:'', ring:2, angle:40,  cat:'stef', desc:'Kurzvideos & Clips.', subagents:[]},
-  {id:'seo',        label:'SEO',        sub:'', ring:2, angle:55,  cat:'stef', desc:'Keywords & Ranking.', subagents:[]},
-  {id:'yt',         label:'YouTube',    sub:'', ring:2, angle:70,  cat:'stef', desc:'Analytics & Wachstum.', subagents:[]},
-  {id:'mktg',       label:'Marketing',  sub:'', ring:2, angle:50,  cat:'stef', desc:'Funnel & Affiliate.', subagents:[]},
-  {id:'ads',        label:'Ads',        sub:'', ring:2, angle:65,  cat:'stef', desc:'Werbeanzeigen.', subagents:[]},
-  {id:'pr',         label:'PR',         sub:'', ring:2, angle:80,  cat:'stef', desc:'Kooperationen & Sponsoring.', subagents:[]},
-  {id:'email',      label:'Email',      sub:'', ring:2, angle:95,  cat:'stef', desc:'Newsletter & Sequenzen.', subagents:[]},
-  {id:'comm',       label:'Community',  sub:'', ring:2, angle:110, cat:'stef', desc:'Discord & Telegram.', subagents:[]},
-  {id:'disc',       label:'Discord',    sub:'', ring:2, angle:125, cat:'stef', desc:'Tickets & Server.', subagents:[]},
-  {id:'prod',       label:'Produkt',    sub:'', ring:2, angle:110, cat:'stef', desc:'Kurse & Mentoring.', subagents:[]},
-  {id:'web',        label:'Webdesign',  sub:'', ring:2, angle:125, cat:'stef', desc:'Landing Pages.', subagents:[]},
-  {id:'brand',      label:'Branding',   sub:'', ring:2, angle:140, cat:'stef', desc:'Logo & Identität.', subagents:[]},
-  {id:'auto',       label:'Automation', sub:'', ring:2, angle:155, cat:'stef', desc:'n8n Workflows.', subagents:[]},
-  {id:'it',         label:'IT',         sub:'', ring:2, angle:170, cat:'stef', desc:'Dashboards & Webhooks.', subagents:[]},
-  {id:'lib',        label:'Library',    sub:'', ring:2, angle:185, cat:'stef', desc:'Wissen & PDFs.', subagents:[]},
-  {id:'makro',      label:'Makro',      sub:'', ring:2, angle:160, cat:'trading', desc:'Fed, EZB, DXY.', subagents:[]},
-  {id:'onchain',    label:'On-Chain',   sub:'', ring:2, angle:175, cat:'trading', desc:'SOPR, MVRV, Flows.', subagents:[]},
-  {id:'liq',        label:'Liquidation',sub:'', ring:2, angle:190, cat:'trading', desc:'OI & Funding Rate.', subagents:[]},
-  {id:'cot',        label:'COT',        sub:'', ring:2, angle:205, cat:'trading', desc:'CFTC Net Positions.', subagents:[]},
-  {id:'news',       label:'News',       sub:'', ring:2, angle:220, cat:'trading', desc:'Breaking News.', subagents:[]},
-  {id:'tech',       label:'Technical',  sub:'', ring:2, angle:235, cat:'trading', desc:'SMC & Struktur.', subagents:[]},
-  {id:'bias',       label:'Bias Report',sub:'', ring:2, angle:250, cat:'trading', desc:'Tages-Bias.', subagents:[]},
-  {id:'plan',       label:'Planning',   sub:'', ring:2, angle:230, cat:'stef', desc:'Strategie & OKRs.', subagents:[]},
-  {id:'data',       label:'Data',       sub:'', ring:2, angle:245, cat:'stef', desc:'KPIs & Metriken.', subagents:[]},
-  {id:'analyst',    label:'Analysten',  sub:'', ring:2, angle:260, cat:'stef', desc:'Deep-Dives.', subagents:[]},
+// Stef_life Ring 1 — 5 Haupt-Hubs um Nova
+const STEF_HUBS = [
+  {id:'content-hub',  label:'Content',   sub:'MEDIA',      angle:-90, cat:'stef',    desc:'Content, Copy, Thumbnail, Shorts, SEO, YouTube.', subs:['Content','Copywriting','Thumbnail','Shorts','SEO','YouTube']},
+  {id:'marketing-hub',label:'Marketing', sub:'GROWTH',     angle:-18, cat:'stef',    desc:'Marketing, Ads, PR, Email, Community, Discord.', subs:['Marketing','Ads','PR','Email','Community','Discord']},
+  {id:'produkt-hub',  label:'Produkt',   sub:'BUILD',      angle:54,  cat:'stef',    desc:'Produkt, Webdesign, Branding, Automation, IT, Library.', subs:['Produkt','Webdesign','Branding','Automation','IT','Library']},
+  {id:'strategy-hub', label:'Strategie', sub:'PLAN',       angle:126, cat:'stef',    desc:'Planning, Data, Analysten.', subs:['Planning','Data','Analysten']},
+  {id:'qa-hub',       label:'QA',        sub:'QUALITY',    angle:198, cat:'stef',    desc:'4-Augen-Prinzip. Prüft alle Outputs.', subs:['QA Agent']},
 ];
 
-// Radien
-const R = {0: 0, 1: 220, 2: 390};
+// Trading Sub-Teams um Trading Hub
+const TRADING_TEAMS = [
+  {id:'makro',     label:'Makro',      angle:-90,  desc:'Fed, EZB, DXY, Makro.'},
+  {id:'onchain',   label:'On-Chain',   angle:-38,  desc:'SOPR, MVRV, Flows.'},
+  {id:'liq',       label:'Liquidation',angle:14,   desc:'OI & Funding Rate.'},
+  {id:'cot',       label:'COT',        angle:66,   desc:'CFTC Net Positions.'},
+  {id:'news',      label:'News',       angle:118,  desc:'Breaking News.'},
+  {id:'technical', label:'Technical',  angle:170,  desc:'SMC & Struktur.'},
+  {id:'bias',      label:'Bias Report',angle:222,  desc:'Tages-Bias Report.'},
+];
 
-// Positionen berechnen
-function getPos(node){
-  const r = R[node.ring] * scale;
-  const a = (node.angle - 90) * Math.PI / 180;
-  return {x: cx + Math.cos(a)*r, y: cy + Math.sin(a)*r};
+// Stef_life Sub-Teams (Ring 2) — direkt an Hubs
+const STEF_SUBS = [
+  // Content-Hub
+  {id:'s-content',  label:'Content',    hub:'content-hub',  angle:-120},
+  {id:'s-copy',     label:'Copy',       hub:'content-hub',  angle:-90},
+  {id:'s-thumb',    label:'Thumbnail',  hub:'content-hub',  angle:-60},
+  {id:'s-shorts',   label:'Shorts',     hub:'content-hub',  angle:-40},
+  {id:'s-seo',      label:'SEO',        hub:'content-hub',  angle:-20},
+  {id:'s-yt',       label:'YouTube',    hub:'content-hub',  angle:0},
+  // Marketing-Hub
+  {id:'s-mktg',     label:'Marketing',  hub:'marketing-hub', angle:-48},
+  {id:'s-ads',      label:'Ads',        hub:'marketing-hub', angle:-18},
+  {id:'s-pr',       label:'PR',         hub:'marketing-hub', angle:12},
+  {id:'s-email',    label:'Email',      hub:'marketing-hub', angle:42},
+  {id:'s-comm',     label:'Community',  hub:'marketing-hub', angle:72},
+  {id:'s-disc',     label:'Discord',    hub:'marketing-hub', angle:102},
+  // Produkt-Hub
+  {id:'s-prod',     label:'Produkt',    hub:'produkt-hub',   angle:24},
+  {id:'s-web',      label:'Webdesign',  hub:'produkt-hub',   angle:54},
+  {id:'s-brand',    label:'Branding',   hub:'produkt-hub',   angle:84},
+  {id:'s-auto',     label:'Automation', hub:'produkt-hub',   angle:114},
+  {id:'s-it',       label:'IT',         hub:'produkt-hub',   angle:144},
+  {id:'s-lib',      label:'Library',    hub:'produkt-hub',   angle:174},
+  // Strategy-Hub
+  {id:'s-plan',     label:'Planning',   hub:'strategy-hub',  angle:96},
+  {id:'s-data',     label:'Data',       hub:'strategy-hub',  angle:126},
+  {id:'s-anal',     label:'Analysten',  hub:'strategy-hub',  angle:156},
+];
+
+function deg2rad(d){ return d*Math.PI/180; }
+
+function hubPos(hub){
+  const r=novaR1(), a=deg2rad(hub.angle);
+  return {x:novaCX()+Math.cos(a)*r, y:novaCY()+Math.sin(a)*r};
+}
+function tradPos(t){
+  const r=tradR1(), a=deg2rad(t.angle);
+  return {x:tradCX()+Math.cos(a)*r, y:tradCY()+Math.sin(a)*r};
+}
+function subPos(sub){
+  const hub=STEF_HUBS.find(h=>h.id===sub.hub);
+  if(!hub) return {x:novaCX(),y:novaCY()};
+  const hp=hubPos(hub);
+  // Sub ist weiter außen vom Hub
+  const novaP={x:novaCX(),y:novaCY()};
+  const dx=hp.x-novaP.x, dy=hp.y-novaP.y;
+  const len=Math.hypot(dx,dy);
+  const a=deg2rad(sub.angle);
+  const subR=novaR1()*0.52;
+  return {x:hp.x+Math.cos(a)*subR*scale/scale, y:hp.y+Math.sin(a)*subR*scale/scale};
 }
 
-// Aktive Nodes (von API)
-let activeNodes = new Set();
-let hoveredNode = null;
-
-// Farben
-function nodeColor(node, active){
-  if(node.ring === 0) return active ? '#FFD700' : '#D4AF37';
-  if(node.cat === 'trading') return active ? '#00ffff' : '#00d4ff';
-  return active ? '#FFD700' : '#D4AF37';
-}
-
-// Netz im Zentrum zeichnen (wie WSS Hub)
-function drawNet(){
-  const netPoints = [];
-  const count = 80;
-  const seed = Date.now() * 0.0001;
-  for(let i=0;i<count;i++){
-    const a = (i/count)*Math.PI*2 + seed;
-    const r2 = (R[1]*0.6 + Math.sin(i*2.3+seed)*R[1]*0.25) * scale;
-    netPoints.push({x: cx+Math.cos(a)*r2, y: cy+Math.sin(a)*r2});
+function resize(){
+  W=C.width=BG.width=window.innerWidth;
+  H=C.height=BG.height=window.innerHeight;
+  scale=Math.min(W,H)/900;
+  // Sterne
+  bgc.clearRect(0,0,W,H);
+  for(let i=0;i<280;i++){
+    bgc.beginPath(); bgc.arc(Math.random()*W,Math.random()*H,Math.random()*1.3,0,Math.PI*2);
+    bgc.fillStyle=`rgba(212,175,55,${Math.random()*0.1})`; bgc.fill();
   }
-  ctx.strokeStyle = 'rgba(212,175,55,0.06)';
-  ctx.lineWidth = 0.5;
-  for(let i=0;i<netPoints.length;i++){
-    for(let j=i+1;j<netPoints.length;j++){
-      const d = Math.hypot(netPoints[i].x-netPoints[j].x, netPoints[i].y-netPoints[j].y);
-      if(d < 80*scale){
-        ctx.beginPath();
-        ctx.moveTo(netPoints[i].x, netPoints[i].y);
-        ctx.lineTo(netPoints[j].x, netPoints[j].y);
-        ctx.stroke();
-      }
-    }
-  }
 }
+window.addEventListener('resize',()=>{resize();});
 
-// Orbit-Ringe
-function drawOrbits(){
-  [1,2].forEach(r => {
-    ctx.beginPath();
-    ctx.arc(cx, cy, R[r]*scale, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(212,175,55,0.06)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  });
+// Partikel
+const particles=[];
+let ptick=0;
+function spawnParticle(x1,y1,x2,y2,col){
+  particles.push({x1,y1,x2,y2,t:0,speed:0.02+Math.random()*0.02,col});
 }
-
-// Verbindungslinien
-function drawLines(){
-  NODES.forEach(node => {
-    if(node.ring === 0) return;
-    const pos = getPos(node);
-    let parentId = node.ring === 1 ? 'nova' : null;
-    if(node.ring === 2){
-      // Verbinde zu Hub basierend auf cat + angle-Nähe
-      const hubs = NODES.filter(n => n.ring === 1);
-      let closest = null, minDiff = 999;
-      hubs.forEach(h => {
-        const diff = Math.abs(((node.angle - h.angle + 540)%360) - 180);
-        if(diff < minDiff){ minDiff=diff; closest=h; }
-      });
-      parentId = closest ? closest.id : 'nova';
-    }
-    const parent = NODES.find(n => n.id === parentId);
-    if(!parent) return;
-    const ppos = getPos(parent);
-    const active = activeNodes.has(node.id);
-    const pactive = activeNodes.has(parentId);
-    const alpha = (active || pactive) ? 0.5 : 0.12;
-    const col = node.cat==='trading' ? `rgba(0,212,255,${alpha})` : `rgba(212,175,55,${alpha})`;
-    ctx.beginPath();
-    ctx.moveTo(ppos.x, ppos.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = col;
-    ctx.lineWidth = (active||pactive) ? 1.5 : 0.7;
-    ctx.stroke();
-  });
-}
-
-// Partikel auf aktiven Linien
-const particles = [];
-let pTick = 0;
-
 function updateParticles(){
-  pTick++;
-  // Neue Partikel für aktive Nodes
-  if(pTick % 8 === 0){
-    activeNodes.forEach(id => {
-      const node = NODES.find(n => n.id === id);
-      if(!node || node.ring===0) return;
-      const pos = getPos(node);
-      const hubId = node.ring===1 ? 'nova' : (() => {
-        const hubs = NODES.filter(n=>n.ring===1);
-        let cl=null,md=999;
-        hubs.forEach(h=>{const d=Math.abs(((node.angle-h.angle+540)%360)-180);if(d<md){md=d;cl=h;}});
-        return cl?cl.id:'nova';
-      })();
-      const hub = NODES.find(n=>n.id===hubId);
-      if(!hub) return;
-      const hpos = getPos(hub);
-      const col = node.cat==='trading'?'rgba(0,212,255,0.9)':'rgba(212,175,55,0.9)';
-      particles.push({x:hpos.x,y:hpos.y,tx:pos.x,ty:pos.y,t:0,speed:0.025,col});
+  ptick++;
+  if(ptick%10===0){
+    activeNodes.forEach(id=>{
+      // Von Nova zu Hub
+      const hub=STEF_HUBS.find(h=>h.id===id);
+      if(hub){const p=hubPos(hub); spawnParticle(novaCX(),novaCY(),p.x,p.y,'rgba(212,175,55,0.9)'); return;}
+      // Von Trading Hub zu Sub
+      const tt=TRADING_TEAMS.find(t=>t.id===id);
+      if(tt){const p=tradPos(tt); spawnParticle(tradCX(),tradCY(),p.x,p.y,'rgba(0,212,255,0.9)'); return;}
+      // Von Hub zu Sub
+      const sub=STEF_SUBS.find(s=>s.id===id);
+      if(sub){const hub2=STEF_HUBS.find(h=>h.id===sub.hub); if(hub2){const hp=hubPos(hub2),sp=subPos(sub); spawnParticle(hp.x,hp.y,sp.x,sp.y,'rgba(212,175,55,0.8)');}}
     });
   }
-  // Partikel bewegen
   for(let i=particles.length-1;i>=0;i--){
     particles[i].t+=particles[i].speed;
     if(particles[i].t>=1) particles.splice(i,1);
@@ -242,209 +177,216 @@ function updateParticles(){
 
 function drawParticles(){
   particles.forEach(p=>{
-    const x=p.x+(p.tx-p.x)*p.t, y=p.y+(p.ty-p.y)*p.t;
+    const x=p.x1+(p.x2-p.x1)*p.t, y=p.y1+(p.y2-p.y1)*p.t;
     ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2);
     ctx.fillStyle=p.col; ctx.fill();
   });
 }
 
-// Nodes zeichnen
-function drawNodes(){
-  NODES.forEach(node => {
-    const pos = getPos(node);
-    const active = activeNodes.has(node.id);
-    const hovered = hoveredNode && hoveredNode.id === node.id;
-    const col = nodeColor(node, active);
-    const isCenter = node.ring === 0;
-
-    // Glow bei aktiv
-    if(active || isCenter){
-      ctx.beginPath();
-      const gR = isCenter ? 45*scale : (node.ring===1?22:14)*scale;
-      const grad = ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,gR*2);
-      const gc = node.cat==='trading'?'rgba(0,212,255,':'rgba(212,175,55,';
-      grad.addColorStop(0, gc+(active?'0.3)':'0.15)'));
-      grad.addColorStop(1, gc+'0)');
-      ctx.fillStyle=grad;
-      ctx.arc(pos.x,pos.y,gR*2,0,Math.PI*2);
-      ctx.fill();
-    }
-
-    // Kreis
-    const r = isCenter ? 38*scale : (node.ring===1?16:9)*scale;
-    ctx.beginPath(); ctx.arc(pos.x,pos.y,r,0,Math.PI*2);
-    if(isCenter){
-      const g=ctx.createRadialGradient(pos.x,pos.y,0,pos.x,pos.y,r);
-      g.addColorStop(0,'rgba(212,175,55,0.3)');
-      g.addColorStop(1,'rgba(212,175,55,0.05)');
-      ctx.fillStyle=g;
-    } else {
-      ctx.fillStyle = active ? (node.cat==='trading'?'rgba(0,212,255,0.2)':'rgba(212,175,55,0.2)') : 'rgba(10,8,0,0.8)';
-    }
-    ctx.fill();
-    ctx.strokeStyle = col;
-    ctx.lineWidth = isCenter ? 2 : (active||hovered?1.5:0.8);
-    ctx.stroke();
-
-    // Text
-    const fontSize = isCenter ? 13*scale : (node.ring===1?10:8)*scale;
-    ctx.fillStyle = hovered||active ? '#fff' : col;
-    ctx.font = `${isCenter?'600':node.ring===1?'500':'400'} ${fontSize}px system-ui`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    if(isCenter){
-      ctx.fillText('Nova', pos.x, pos.y-6*scale);
-      ctx.font = `300 ${9*scale}px system-ui`;
-      ctx.fillStyle='rgba(212,175,55,0.6)';
-      ctx.fillText('NORA HUB', pos.x, pos.y+8*scale);
-    } else {
-      const labelY = pos.y + r + 12*scale;
-      ctx.fillText(node.label, pos.x, labelY);
-      if(node.sub && node.ring===1){
-        ctx.font=`300 ${7*scale}px system-ui`;
-        ctx.fillStyle='rgba(212,175,55,0.5)';
-        ctx.fillText(node.sub, pos.x, labelY+10*scale);
-      }
-    }
-  });
+function drawLine(x1,y1,x2,y2,col,w,dash){
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle=col; ctx.lineWidth=w;
+  if(dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
+  ctx.stroke(); ctx.setLineDash([]);
 }
 
-// Telegram Icon oben
-function drawTelegram(){
-  const tx2 = cx, ty2 = 20*scale;
-  ctx.beginPath(); ctx.arc(tx2,ty2,10*scale,0,Math.PI*2);
-  ctx.fillStyle='rgba(0,136,204,0.3)'; ctx.fill();
-  ctx.strokeStyle='rgba(0,136,204,0.8)'; ctx.lineWidth=1; ctx.stroke();
-  ctx.fillStyle='#fff'; ctx.font=`${9*scale}px system-ui`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('TG',tx2,ty2);
-  // Linie zu Nova
-  const novaPos = getPos(NODES[0]);
-  ctx.beginPath(); ctx.moveTo(tx2,ty2+10*scale); ctx.lineTo(novaPos.x,novaPos.y-38*scale);
-  ctx.strokeStyle='rgba(0,136,204,0.3)'; ctx.lineWidth=0.7; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle='rgba(0,136,204,0.6)'; ctx.font=`${7*scale}px system-ui`;
-  ctx.fillText('Stefan', tx2, ty2-14*scale);
+function drawCircleNode(x,y,r,fillCol,strokeCol,lw){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=fillCol; ctx.fill();
+  ctx.strokeStyle=strokeCol; ctx.lineWidth=lw; ctx.stroke();
 }
 
-let frame=0;
-function drawAll(){
+function drawGlow(x,y,r,col){
+  const g=ctx.createRadialGradient(x,y,0,x,y,r*2.5);
+  g.addColorStop(0,col.replace('1)','0.35)')); g.addColorStop(1,col.replace('1)','0)'));
+  ctx.beginPath(); ctx.arc(x,y,r*2.5,0,Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+}
+
+function label(x,y,text,size,col,bold){
+  ctx.fillStyle=col; ctx.font=`${bold?'600':'400'} ${size}px system-ui`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(text,x,y);
+}
+
+function render(){
   ctx.clearRect(0,0,W,H);
-  // Sterne-Hintergrund
-  if(frame===0){
-    for(let i=0;i<200;i++){
-      ctx.beginPath(); ctx.arc(Math.random()*W,Math.random()*H,Math.random()*1.2,0,Math.PI*2);
-      ctx.fillStyle=`rgba(212,175,55,${Math.random()*0.15})`; ctx.fill();
-    }
-  }
-  drawOrbits();
-  drawNet();
-  drawLines();
-  updateParticles();
-  drawParticles();
-  drawNodes();
-  drawTelegram();
-  frame++;
-  requestAnimationFrame(drawAll);
-}
+  const s=scale;
 
-resize();
+  // === ORBIT RINGE um Nova ===
+  ctx.beginPath(); ctx.arc(novaCX(),novaCY(),novaR1(),0,Math.PI*2);
+  ctx.strokeStyle='rgba(212,175,55,0.08)'; ctx.lineWidth=1; ctx.stroke();
 
-// Sterne separat (statisch)
-const bgCanvas = document.createElement('canvas');
-bgCanvas.style.cssText='position:fixed;top:0;left:0;z-index:-1';
-bgCanvas.width=window.innerWidth; bgCanvas.height=window.innerHeight;
-document.body.appendChild(bgCanvas);
-const bgCtx=bgCanvas.getContext('2d');
-for(let i=0;i<250;i++){
-  bgCtx.beginPath(); bgCtx.arc(Math.random()*bgCanvas.width,Math.random()*bgCanvas.height,Math.random()*1.5,0,Math.PI*2);
-  bgCtx.fillStyle=`rgba(212,175,55,${Math.random()*0.12})`; bgCtx.fill();
-}
+  // === ORBIT RING um Trading ===
+  ctx.beginPath(); ctx.arc(tradCX(),tradCY(),tradR1(),0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,212,255,0.08)'; ctx.lineWidth=1; ctx.stroke();
 
-// Hover
-canvas.addEventListener('mousemove', e=>{
-  const rect=canvas.getBoundingClientRect();
-  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-  let found=null;
-  NODES.forEach(node=>{
-    const pos=getPos(node);
-    const r=(node.ring===0?38:node.ring===1?16:9)*scale;
-    if(Math.hypot(mx-pos.x,my-pos.y)<r+8) found=node;
+  // === VERBINDUNG Nova ↔ Trading Hub ===
+  drawLine(novaCX(),novaCY(),tradCX(),tradCY(),'rgba(212,175,55,0.2)',1.2,[5,5]);
+
+  // === LINIEN Nova → Stef Hubs ===
+  STEF_HUBS.forEach(hub=>{
+    const p=hubPos(hub), active=activeNodes.has(hub.id);
+    const alpha=active?0.6:0.15;
+    drawLine(novaCX(),novaCY(),p.x,p.y,`rgba(212,175,55,${alpha})`,active?1.5:0.8);
   });
-  hoveredNode=found;
-  const tt=document.getElementById('tooltip');
-  if(found){
-    tt.style.display='block';
-    tt.style.left=(e.clientX+16)+'px';
-    tt.style.top=(e.clientY-10)+'px';
-    document.getElementById('tt-name').textContent=found.label+(found.sub?' · '+found.sub:'');
-    document.getElementById('tt-desc').textContent=found.desc||'';
-    const active=activeNodes.has(found.id);
-    const dot=document.getElementById('tt-dot');
-    dot.style.background=active?'#00ff78':'#555';
-    document.getElementById('tt-status').textContent=active?'AKTIV — ARBEITET GERADE':'BEREIT';
-    tt.style.color=active?'#00ff78':'#888';
-    canvas.style.cursor='pointer';
-  } else {
-    tt.style.display='none';
-    canvas.style.cursor='default';
-  }
-});
 
-// Click
-canvas.addEventListener('click', e=>{
-  if(!hoveredNode) return;
-  const n=hoveredNode;
-  document.getElementById('i-name').textContent=n.label;
-  document.getElementById('i-cat').textContent=n.sub||n.cat.toUpperCase();
-  document.getElementById('i-desc').textContent=n.desc||'';
-  const agentsEl=document.getElementById('i-agents');
-  agentsEl.innerHTML='';
-  (n.subagents||[]).forEach(a=>{
-    const row=document.createElement('div');
-    const active=activeNodes.has(n.id);
-    row.className='agent-row'+(active?' active':'');
-    row.innerHTML=`<div class="d"></div>${a}`;
-    agentsEl.appendChild(row);
+  // === LINIEN Stef Hubs → Subs ===
+  STEF_SUBS.forEach(sub=>{
+    const p=subPos(sub), hub=STEF_HUBS.find(h=>h.id===sub.hub);
+    if(!hub) return;
+    const hp=hubPos(hub), active=activeNodes.has(sub.id);
+    const alpha=active?0.5:0.1;
+    drawLine(hp.x,hp.y,p.x,p.y,`rgba(212,175,55,${alpha})`,active?1.2:0.5);
+  });
+
+  // === LINIEN Trading Hub → Teams ===
+  TRADING_TEAMS.forEach(t=>{
+    const p=tradPos(t), active=activeNodes.has(t.id);
+    const alpha=active?0.6:0.15;
+    drawLine(tradCX(),tradCY(),p.x,p.y,`rgba(0,212,255,${alpha})`,active?1.5:0.8);
+  });
+
+  updateParticles(); drawParticles();
+
+  // === TRADING HUB ===
+  const tActive=activeNodes.has('trading-hub');
+  if(tActive) drawGlow(tradCX(),tradCY(),26*s,'rgba(0,212,255,1)');
+  drawCircleNode(tradCX(),tradCY(),26*s,'rgba(0,12,20,0.9)','rgba(0,212,255,0.9)',tActive?2:1.5);
+  label(tradCX(),tradCY()-8*s,'Trading',11*s,'#00d4ff',true);
+  label(tradCX(),tradCY()+6*s,'ZENTRALE',7*s,'rgba(0,212,255,0.5)',false);
+
+  // === TRADING TEAM NODES ===
+  TRADING_TEAMS.forEach(t=>{
+    const p=tradPos(t), active=activeNodes.has(t.id), hov=hoveredNode&&hoveredNode.id===t.id;
+    const r=11*s;
+    if(active) drawGlow(p.x,p.y,r,'rgba(0,212,255,1)');
+    drawCircleNode(p.x,p.y,r, active?'rgba(0,40,60,0.9)':'rgba(10,8,0,0.8)', active?'#00d4ff':'rgba(0,212,255,0.45)', active||hov?1.5:0.8);
+    const col=active?'#fff':hov?'#00d4ff':'rgba(0,212,255,0.7)';
+    label(p.x,p.y+r+9*s,t.label,7.5*s,col,active);
+  });
+
+  // === NOVA HUB ===
+  const novaActive=activeNodes.has('nova');
+  drawGlow(novaCX(),novaCY(),38*s,'rgba(212,175,55,1)');
+  drawCircleNode(novaCX(),novaCY(),38*s,'rgba(20,15,0,0.9)','rgba(212,175,55,0.9)',2);
+  label(novaCX(),novaCY()-10*s,'Nova',13*s,'#D4AF37',true);
+  label(novaCX(),novaCY()+5*s,'NORA HUB',7*s,'rgba(212,175,55,0.5)',false);
+
+  // Telegram
+  const tgY=novaCY()-38*s-28*s;
+  ctx.beginPath(); ctx.arc(novaCX(),tgY,10*s,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,136,204,0.25)'; ctx.fill();
+  ctx.strokeStyle='rgba(0,136,204,0.7)'; ctx.lineWidth=1; ctx.stroke();
+  label(novaCX(),tgY,'TG',7*s,'#4fc3f7',false);
+  drawLine(novaCX(),tgY+10*s,novaCX(),novaCY()-38*s,'rgba(0,136,204,0.3)',0.7,[3,3]);
+  label(novaCX(),tgY-16*s,'Stefan',7*s,'rgba(0,136,204,0.6)',false);
+
+  // === STEF HUBS ===
+  STEF_HUBS.forEach(hub=>{
+    const p=hubPos(hub), active=activeNodes.has(hub.id), hov=hoveredNode&&hoveredNode.id===hub.id;
+    const r=14*s;
+    if(active) drawGlow(p.x,p.y,r,'rgba(212,175,55,1)');
+    drawCircleNode(p.x,p.y,r, active?'rgba(30,22,0,0.9)':'rgba(10,8,0,0.85)', active?'#D4AF37':'rgba(212,175,55,0.5)', active||hov?1.5:0.8);
+    const col=active?'#FFD700':hov?'#D4AF37':'rgba(212,175,55,0.7)';
+    label(p.x,p.y+r+9*s,hub.label,8*s,col,active);
+    label(p.x,p.y+r+18*s,hub.sub,5.5*s,'rgba(212,175,55,0.35)',false);
+  });
+
+  // === STEF SUBS ===
+  STEF_SUBS.forEach(sub=>{
+    const p=subPos(sub), active=activeNodes.has(sub.id), hov=hoveredNode&&hoveredNode.id===sub.id;
+    const r=7*s;
+    if(active) drawGlow(p.x,p.y,r,'rgba(212,175,55,1)');
+    drawCircleNode(p.x,p.y,r, active?'rgba(30,22,0,0.9)':'rgba(10,8,0,0.8)', active?'#D4AF37':'rgba(212,175,55,0.3)', active||hov?1.2:0.5);
+    const col=active?'#FFD700':hov?'#ccc':'rgba(212,175,55,0.5)';
+    label(p.x,p.y+r+7*s,sub.label,6*s,col,false);
+  });
+
+  requestAnimationFrame(render);
+}
+
+// Hit-test
+function hitTest(mx,my){
+  let found=null;
+  // Nova
+  if(Math.hypot(mx-novaCX(),my-novaCY())<38*scale+8) return {id:'nova',label:'Nova · Nora Hub',desc:'Zentrale KI. Koordiniert alle 30 Teams.',subs:['Nova (Assistentin)','Nora (CEO)','Dispatcher'],cat:'stef',sub:'HUB'};
+  // Trading Hub
+  if(Math.hypot(mx-tradCX(),my-tradCY())<26*scale+8) return {id:'trading-hub',label:'Trading Zentrale',desc:'Koordiniert alle 7 Trading-Teams.',subs:TRADING_TEAMS.map(t=>t.label),cat:'trading',sub:'ZENTRALE'};
+  // Trading Teams
+  TRADING_TEAMS.forEach(t=>{const p=tradPos(t); if(Math.hypot(mx-p.x,my-p.y)<11*scale+8) found={id:t.id,label:t.label,desc:t.desc,subs:[],cat:'trading',sub:'TRADING'};});
+  if(found) return found;
+  // Stef Hubs
+  STEF_HUBS.forEach(h=>{const p=hubPos(h); if(Math.hypot(mx-p.x,my-p.y)<14*scale+8) found={id:h.id,label:h.label,desc:h.desc,subs:h.subs,cat:'stef',sub:h.sub};});
+  if(found) return found;
+  // Subs
+  STEF_SUBS.forEach(s=>{const p=subPos(s); if(Math.hypot(mx-p.x,my-p.y)<7*scale+8) found={id:s.id,label:s.label,desc:'Sub-Agent',subs:[],cat:'stef',sub:'TEAM'};});
+  return found;
+}
+
+function openInfo(n){
+  document.getElementById('i-n').textContent=n.label;
+  document.getElementById('i-s').textContent=n.sub||'';
+  document.getElementById('i-d').textContent=n.desc||'';
+  const ag=document.getElementById('i-a'); ag.innerHTML='';
+  (n.subs||[]).forEach(a=>{
+    const r=document.createElement('div');
+    r.className='ar'+(activeNodes.has(n.id)?' on':'');
+    r.innerHTML=`<div class="d"></div>${a}`;
+    ag.appendChild(r);
   });
   document.getElementById('info').classList.add('open');
+}
+
+C.addEventListener('mousemove',e=>{
+  const r=C.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  const n=hitTest(mx,my);
+  hoveredNode=n;
+  const tt=document.getElementById('tooltip');
+  if(n){
+    tt.style.display='block'; tt.style.left=(e.clientX+14)+'px'; tt.style.top=(e.clientY-8)+'px';
+    document.getElementById('tt-n').textContent=n.label;
+    document.getElementById('tt-d').textContent=n.desc||'';
+    const act=activeNodes.has(n.id);
+    document.getElementById('tt-dot').style.background=act?'#00ff78':'#555';
+    document.getElementById('tt-s').textContent=act?'AKTIV':'BEREIT';
+    C.style.cursor='pointer';
+  } else { tt.style.display='none'; C.style.cursor='default'; }
 });
+
+C.addEventListener('click',e=>{
+  const r=C.getBoundingClientRect();
+  const n=hitTest(e.clientX-r.left,e.clientY-r.top);
+  if(n) openInfo(n);
+});
+
+C.addEventListener('touchend',e=>{
+  const t=e.changedTouches[0], r=C.getBoundingClientRect();
+  const n=hitTest(t.clientX-r.left,t.clientY-r.top);
+  if(n) openInfo(n);
+},{passive:true});
+
 document.getElementById('close').onclick=()=>document.getElementById('info').classList.remove('open');
 
-// Touch
-let lastTouch={};
-canvas.addEventListener('touchend', e=>{
-  const t=e.changedTouches[0];
-  const rect=canvas.getBoundingClientRect();
-  const mx=t.clientX-rect.left, my=t.clientY-rect.top;
-  NODES.forEach(node=>{
-    const pos=getPos(node);
-    const r=(node.ring===0?38:node.ring===1?16:9)*scale+10;
-    if(Math.hypot(mx-pos.x,my-pos.y)<r){
-      hoveredNode=node;
-      canvas.dispatchEvent(new MouseEvent('click'));
-    }
-  });
-});
+setInterval(()=>{ document.getElementById('clock').textContent=new Date().toLocaleTimeString('de-DE'); },1000);
 
-// Clock
-setInterval(()=>{
-  document.getElementById('clock').textContent=new Date().toLocaleTimeString('de-DE');
-},1000);
-
-// Status API pollen
 async function pollStatus(){
   try{
-    const r=await fetch(STATUS_API);
+    const r=await fetch(STATUS_API,{headers:{'Cache-Control':'no-cache'}});
     const d=await r.json();
-    const prev=new Set(activeNodes);
     activeNodes.clear();
-    (d.events||[]).forEach(e=>{
-      const node=NODES.find(n=>n.id===e.agent||n.label.toLowerCase()===e.agent.toLowerCase());
-      if(node) activeNodes.add(node.id);
+    (d.events||[]).forEach(ev=>{
+      const id=ev.agent;
+      activeNodes.add(id);
     });
-    const count=activeNodes.size;
-    document.getElementById('active-count').textContent=count>0?`${count} Agent${count>1?'s':''} aktiv`:'Alle bereit';
+    const c=activeNodes.size;
+    document.getElementById('ac').textContent=c>0?`${c} Agent${c>1?'s':''} aktiv`:'Alle bereit';
   }catch(e){}
   setTimeout(pollStatus,3000);
 }
+
+resize();
+render();
 pollStatus();
 </script>
 </body>
